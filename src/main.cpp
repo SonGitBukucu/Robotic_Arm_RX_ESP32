@@ -42,8 +42,6 @@ Servo servo6;
 Servo servo7;
 Servo servo8;
 
-
-
 void setup() {
   Serial.begin(115200);
 

@@ -46,6 +46,8 @@ Servo servo6;
 Servo servo7;
 Servo servo8;
 
+short kanal[5];
+
 const byte nrf24kod[5] = {'r','o','b','o','t'}; 
 RF24 radio(NRF24CE, NRF24CSN);
 

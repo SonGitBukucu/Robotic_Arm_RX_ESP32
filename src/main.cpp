@@ -14,15 +14,16 @@
 #define NRF24CE   4
 #define NRF24CSN  5 //PLACEHOLDER
 
-#define servoEnable //servoların çalışması için bu pinin HIGH olması lazım
-#define servo1Pin
-#define servo2Pin
-#define servo3Pin
-#define servo4Pin
-#define servo5Pin
-#define servo6Pin
-#define servo7Pin
-#define servo8Pin
+#define servoEnable 32 //servoların çalışması için bu pinin HIGH olması lazım
+#define servo1Pin   0
+#define servo2Pin   2
+#define servo3Pin   16
+#define servo4Pin   17
+#define servo5Pin   25
+#define servo6Pin   26
+#define servo7Pin   27
+#define servo8Pin   33
+bool arm = false;
 
 #define playbackArti
 #define playbackEksi
@@ -46,7 +47,10 @@ Servo servo6;
 Servo servo7;
 Servo servo8;
 
-short kanal[5];
+unsigned long basarili = 0;
+unsigned int failsafeAralik = 700; // fail-safe devreye girmesi için gereken süre.
+
+short kanal[11];
 
 const byte nrf24kod[5] = {'r','o','b','o','t'}; 
 RF24 radio(NRF24CE, NRF24CSN);
@@ -87,8 +91,34 @@ void loop() {
 void iletisimCode( void * parameter) {
   Serial.println(xPortGetCoreID());
   for(;;) {
-    Serial.println(sayac0++);
-    delay(1000);
+    if (radio.available()) {
+    if (arm == false) {
+      servo1.attach(servo1Pin);
+      servo2.attach(servo2Pin);
+      servo3.attach(servo3Pin);
+      servo4.attach(servo4Pin);               
+      servo5.attach(servo5Pin);
+      servo6.attach(servo6Pin);
+      servo7.attach(servo7Pin);
+      servo8.attach(servo8Pin);
+      arm = true;
+    }
+    digitalWrite(servoEnable, HIGH);
+    basarili = millis();
+    radio.read(&kanal,sizeof(kanal));
+    servo1.writeMicroseconds      (kanal[0]);
+    servo2.writeMicroseconds      (kanal[1]);
+    servo3.writeMicroseconds      (kanal[2]);
+    servo4.writeMicroseconds      (kanal[3]);
+    servo5.writeMicroseconds      (kanal[4]);
+    servo6.writeMicroseconds      (kanal[5]);
+    servo7.writeMicroseconds      (kanal[6]);
+    servo8.writeMicroseconds      (kanal[7]);
+  }
+  if (arm == true && millis() - basarili >= failsafeAralik) {
+    digitalWrite(servoEnable, LOW);
+  }
+
   }
 }
 

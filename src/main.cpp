@@ -15,14 +15,14 @@
 #define NRF24CSN  5 //PLACEHOLDER
 
 #define servoEnable 32 //servoların çalışması için bu pinin HIGH olması lazım
-#define servo1Pin   0
-#define servo2Pin   2
-#define servo3Pin   16
-#define servo4Pin   17
-#define servo5Pin   25
-#define servo6Pin   26
-#define servo7Pin   27
-#define servo8Pin   33
+#define servoPanPin   0
+#define servoTiltPin   2
+#define servoBasPin   16
+#define servoIsaretPin   17
+#define servoOrtaPin   25
+#define servoYuzukPin   26
+#define servoSercePin   27
+//#define servo8Pin   33
 bool arm = false;
 
 #define playbackArti
@@ -38,14 +38,14 @@ int sayac1 = 0;
 void iletisimCode(void * parameter);
 void sdKartCode(void * parameter);
 
-Servo servo1;
-Servo servo2;
-Servo servo3;
-Servo servo4;
-Servo servo5;
-Servo servo6;
-Servo servo7;
-Servo servo8;
+Servo servoPan;
+Servo servoTilt;
+Servo servoBas;
+Servo servoIsaret;
+Servo servoOrta;
+Servo servoYuzuk;
+Servo servoSerce;
+//Servo servo8;
 
 unsigned long basarili = 0;
 unsigned int failsafeAralik = 700; // fail-safe devreye girmesi için gereken süre.
@@ -94,27 +94,27 @@ void iletisimCode( void * parameter) {
     if (radio.available()) {
       if (arm == false) {
         digitalWrite(servoEnable, HIGH);
-        servo1.attach(servo1Pin);
-        servo2.attach(servo2Pin);
-        servo3.attach(servo3Pin);
-        servo4.attach(servo4Pin);               
-        servo5.attach(servo5Pin);
-        servo6.attach(servo6Pin);
-        servo7.attach(servo7Pin);
-        servo8.attach(servo8Pin);
+        servoPan.attach(servoPanPin);
+        servoTilt.attach(servoTiltPin);
+        servoBas.attach(servoBasPin);
+        servoIsaret.attach(servoIsaretPin);               
+        servoOrta.attach(servoOrtaPin);
+        servoYuzuk.attach(servoYuzukPin);
+        servoSerce.attach(servoSercePin);
+        //servo8.attach(servo8Pin);
         arm = true;
       }
       
       basarili = millis();
       radio.read(&kanal,sizeof(kanal));
-      servo1.writeMicroseconds(kanal[0]);
-      servo2.writeMicroseconds(kanal[1]);
-      servo3.writeMicroseconds(kanal[2]);
-      servo4.writeMicroseconds(kanal[3]);
-      servo5.writeMicroseconds(kanal[4]);
-      servo6.writeMicroseconds(kanal[5]);
-      servo7.writeMicroseconds(kanal[6]);
-      servo8.writeMicroseconds(kanal[7]);
+      servoPan.writeMicroseconds(kanal[0]);
+      servoTilt.writeMicroseconds(kanal[1]);
+      servoBas.writeMicroseconds(kanal[2]);
+      servoIsaret.writeMicroseconds(kanal[3]);
+      servoOrta.writeMicroseconds(kanal[4]);
+      servoYuzuk.writeMicroseconds(kanal[5]);
+      servoSerce.writeMicroseconds(kanal[6]);
+      //servo8.writeMicroseconds(kanal[7]);
   }
   if (arm == true && millis() - basarili >= failsafeAralik) {
     digitalWrite(servoEnable, LOW);
@@ -130,3 +130,30 @@ void sdKartCode( void * parameter) {
     delay(1000);
   }
 }
+
+void failSafe() {
+  kanal[0] = 2000;
+  kanal[1] = 2000;
+  kanal[2] = 1000;
+  kanal[3] = 2000;
+  kanal[4] = 1500;
+  kanal[5] = 1500;
+  kanal[6] = 1500;
+  kanal[7] = 1500;
+
+  servoPan.writeMicroseconds(kanal[0]);
+  servoTilt.writeMicroseconds(kanal[1]);
+  servoBas.writeMicroseconds(kanal[2]);
+  servoIsaret.writeMicroseconds(kanal[3]);
+  servoOrta.writeMicroseconds(kanal[4]);
+  servoYuzuk.writeMicroseconds(kanal[5]);
+  servoSerce.writeMicroseconds(kanal[6]);
+  //servo8.writeMicroseconds(kanal[7]);
+
+  while (millis() - basarili >= failsafeAralik) {
+    if (radio.available()) {
+      return;
+    }  
+  }
+}
+  

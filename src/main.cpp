@@ -7,11 +7,12 @@
 
 #include <RF24.h>
 #include <nRF24L01.h>
+
 #include <SD.h>
 #include <ESP32Servo.h>
 
 #define NRF24CE   4
-#define NRF24CSN  5
+#define NRF24CSN  5 //PLACEHOLDER
 
 #define servoEnable //servoların çalışması için bu pinin HIGH olması lazım
 #define servo1Pin

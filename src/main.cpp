@@ -10,6 +10,9 @@
 #include <SD.h>
 #include <ESP32Servo.h>
 
+#define NRF24CE   4
+#define NRF24CSN  5
+
 #define servoEnable //servoların çalışması için bu pinin HIGH olması lazım
 #define servo1Pin
 #define servo2Pin
@@ -42,6 +45,9 @@ Servo servo6;
 Servo servo7;
 Servo servo8;
 
+const byte nrf24kod[5] = {'r','o','b','o','t'}; 
+RF24 radio(NRF24CE, NRF24CSN);
+
 void setup() {
   Serial.begin(115200);
 
@@ -62,6 +68,13 @@ void setup() {
     1,  /* Priority of the task */
     &sdKart,  /* Task handle. */
     0); /* Core where the task should run */
+
+  radio.begin();
+  radio.openReadingPipe(1,nrf24kod);
+  radio.setChannel(76);
+  radio.setDataRate(RF24_250KBPS);
+  radio.setPALevel(RF24_PA_MAX); // güç çıkışı yüksekten düşüğe: MAX | HIGH | LOW | MIN
+  radio.startListening();
 }
 
 void loop() {

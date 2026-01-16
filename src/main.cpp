@@ -154,7 +154,10 @@ void failSafe() {
   servoYuzuk.writeMicroseconds  (kanal[6]);
   servoSerce.writeMicroseconds  (kanal[7]);
 
-  digitalWrite(servoEnable, LOW);
-  arm = false;
+  while (millis() - basarili >= failsafeAralik) {
+    if (radio.available()) {
+      return;
+    }  
+  }
 }
   

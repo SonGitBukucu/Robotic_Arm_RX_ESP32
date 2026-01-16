@@ -92,28 +92,29 @@ void iletisimCode( void * parameter) {
   Serial.println(xPortGetCoreID());
   for(;;) {
     if (radio.available()) {
-    if (arm == false) {
-      servo1.attach(servo1Pin);
-      servo2.attach(servo2Pin);
-      servo3.attach(servo3Pin);
-      servo4.attach(servo4Pin);               
-      servo5.attach(servo5Pin);
-      servo6.attach(servo6Pin);
-      servo7.attach(servo7Pin);
-      servo8.attach(servo8Pin);
-      arm = true;
-    }
-    digitalWrite(servoEnable, HIGH);
-    basarili = millis();
-    radio.read(&kanal,sizeof(kanal));
-    servo1.writeMicroseconds(kanal[0]);
-    servo2.writeMicroseconds(kanal[1]);
-    servo3.writeMicroseconds(kanal[2]);
-    servo4.writeMicroseconds(kanal[3]);
-    servo5.writeMicroseconds(kanal[4]);
-    servo6.writeMicroseconds(kanal[5]);
-    servo7.writeMicroseconds(kanal[6]);
-    servo8.writeMicroseconds(kanal[7]);
+      if (arm == false) {
+        digitalWrite(servoEnable, HIGH);
+        servo1.attach(servo1Pin);
+        servo2.attach(servo2Pin);
+        servo3.attach(servo3Pin);
+        servo4.attach(servo4Pin);               
+        servo5.attach(servo5Pin);
+        servo6.attach(servo6Pin);
+        servo7.attach(servo7Pin);
+        servo8.attach(servo8Pin);
+        arm = true;
+      }
+      
+      basarili = millis();
+      radio.read(&kanal,sizeof(kanal));
+      servo1.writeMicroseconds(kanal[0]);
+      servo2.writeMicroseconds(kanal[1]);
+      servo3.writeMicroseconds(kanal[2]);
+      servo4.writeMicroseconds(kanal[3]);
+      servo5.writeMicroseconds(kanal[4]);
+      servo6.writeMicroseconds(kanal[5]);
+      servo7.writeMicroseconds(kanal[6]);
+      servo8.writeMicroseconds(kanal[7]);
   }
   if (arm == true && millis() - basarili >= failsafeAralik) {
     digitalWrite(servoEnable, LOW);

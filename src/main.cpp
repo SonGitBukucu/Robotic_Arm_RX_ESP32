@@ -1,10 +1,16 @@
 #include <Arduino.h>
 #include <SPI.h>
+
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
 #include <RF24.h>
 #include <nRF24L01.h>
 #include <SD.h>
 #include <ESP32Servo.h>
 
+#define servoEnable //servoların çalışması için bu pinin HIGH olması lazım
 #define servo1Pin
 #define servo2Pin
 #define servo3Pin

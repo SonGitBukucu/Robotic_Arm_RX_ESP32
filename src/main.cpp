@@ -59,6 +59,7 @@ RF24 radio(NRF24CE, NRF24CSN);
 void setup() {
   Serial.begin(115200);
 
+  pinMode(servoEnable, OUTPUT);
   xTaskCreatePinnedToCore(
     iletisimCode, /* Function to implement the task */
     "Task1", /* Name of the task */
@@ -94,7 +95,6 @@ void iletisimCode( void * parameter) {
   for(;;) {
     if (radio.available()) {
       if (arm == false) {
-        digitalWrite(servoEnable, HIGH);
         servoPan.attach(servoPanPin);
         servoTilt.attach(servoTiltPin);
         servoBilek.attach(servoBilekPin);
@@ -105,6 +105,7 @@ void iletisimCode( void * parameter) {
         servoSerce.attach(servoSercePin);
         arm = true;
       }
+      digitalWrite(servoEnable, HIGH);
       
       basarili = millis();
       radio.read(&kanal,sizeof(kanal));
@@ -121,6 +122,7 @@ void iletisimCode( void * parameter) {
     failSafe();
   }
 
+  vTaskDelay(1); //şimdilik dursun, daha sonra kaldırınca ne olur ona bakacağım
   }
 }
 
@@ -153,11 +155,6 @@ void failSafe() {
   servoSerce.writeMicroseconds  (kanal[7]);
 
   digitalWrite(servoEnable, LOW);
-
-  while (millis() - basarili >= failsafeAralik) {
-    if (radio.available()) {
-      return;
-    }  
-  }
+  arm = false;
 }
   

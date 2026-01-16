@@ -106,14 +106,14 @@ void iletisimCode( void * parameter) {
     digitalWrite(servoEnable, HIGH);
     basarili = millis();
     radio.read(&kanal,sizeof(kanal));
-    servo1.writeMicroseconds      (kanal[0]);
-    servo2.writeMicroseconds      (kanal[1]);
-    servo3.writeMicroseconds      (kanal[2]);
-    servo4.writeMicroseconds      (kanal[3]);
-    servo5.writeMicroseconds      (kanal[4]);
-    servo6.writeMicroseconds      (kanal[5]);
-    servo7.writeMicroseconds      (kanal[6]);
-    servo8.writeMicroseconds      (kanal[7]);
+    servo1.writeMicroseconds(kanal[0]);
+    servo2.writeMicroseconds(kanal[1]);
+    servo3.writeMicroseconds(kanal[2]);
+    servo4.writeMicroseconds(kanal[3]);
+    servo5.writeMicroseconds(kanal[4]);
+    servo6.writeMicroseconds(kanal[5]);
+    servo7.writeMicroseconds(kanal[6]);
+    servo8.writeMicroseconds(kanal[7]);
   }
   if (arm == true && millis() - basarili >= failsafeAralik) {
     digitalWrite(servoEnable, LOW);

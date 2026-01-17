@@ -141,7 +141,7 @@ void sdKartCode( void * parameter) {
   Serial.println(xPortGetCoreID());
   for(;;) {
     int rawMod = analogRead(kolModu);
-    if (rawMod < 100) { // SERBEST MOD   
+    if (rawMod < 100) { // SERBEST MOD OLED EKRANDA YAZ  
       servoPan.writeMicroseconds    (kanal[0]);
       servoTilt.writeMicroseconds   (kanal[1]);
       servoBilek.writeMicroseconds  (kanal[2]);
@@ -151,10 +151,10 @@ void sdKartCode( void * parameter) {
       servoYuzuk.writeMicroseconds  (kanal[6]);
       servoSerce.writeMicroseconds  (kanal[7]);
     }
-    else if (rawMod > 3995) { // PLAYBACK MOD
+    else if (rawMod > 3995) { // PLAYBACK MOD DOSYA İSMİ OLED EKRANDA YAZ
 
     }
-    else { // KAYIT MOD
+    else { // KAYIT MOD OLED EKRANDA YAZ
 
     }
   }

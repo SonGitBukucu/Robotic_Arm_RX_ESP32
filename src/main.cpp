@@ -17,26 +17,31 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #include <SD.h>
 #include <ESP32Servo.h>
 
-#define NRF24CE   4
-#define NRF24CSN  5 //PLACEHOLDER
+#define NRF24_CE   2
+#define NRF24_CSN  5 //PLACEHOLDER
+#define NRF24_SCK  18
+#define NRF24_MISO 19
+#define NRF24_MOSI 23
 
 // HSPI (SD Kart için özel pinler)
 // SCK: 13, MISO: 34, MOSI: 33, CS: 25
 #define SD_SCK  13
 #define SD_MISO 34
 #define SD_MOSI 33
-#define SD_CS   25
-SPIClass hspi = SPIClass(HSPI);
+#define SD_CS   4
 
-#define servoEnable 15 //servoların çalışması için bu pinin HIGH olması lazım
-#define servoPanPin   16
-#define servoTiltPin   17
-#define servoBilekPin   18
-#define servoBasPin   19
-#define servoIsaretPin   25
-#define servoOrtaPin   26
-#define servoYuzukPin   27
-#define servoSercePin   32
+SPIClass hspi = SPIClass(HSPI);
+SPIClass vspi = SPIClass(VSPI);
+
+#define servoEnable       14 //servoların çalışması için bu pinin HIGH olması lazım
+#define servoPanPin       16
+#define servoTiltPin      17
+#define servoBilekPin     12
+#define servoBasPin       15
+#define servoIsaretPin    25
+#define servoOrtaPin      26
+#define servoYuzukPin     27
+#define servoSercePin     32
 
 bool arm      = false;
 
@@ -49,6 +54,7 @@ const int maxFiles = 20;
 bool serbest  = false;
 bool kayit    = false;
 bool playback = false;
+bool sdHazir  = false;
 
 #define playbackArti 35
 #define playbackEksi 36 //PLACEHOLDER
@@ -81,11 +87,19 @@ unsigned int failsafeAralik = 700; // fail-safe devreye girmesi için gereken s�
 short kanal[8];
 
 const byte nrf24kod[5] = {'r','o','b','o','t'}; 
-RF24 radio(NRF24CE, NRF24CSN);
+RF24 radio(NRF24_CE, NRF24_CSN);
 
 void setup() {
   hspi.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS); // SCK, MISO, MOSI, CS
+  vspi.begin(NRF24_SCK, NRF24_MISO, NRF24_MOSI, NRF24_CSN); // SCK, MISO, MOSI, CS
+
   Serial.begin(115200);
+
+  if (!SD.begin(SD_CS, hspi, 4000000)) {
+    Serial.println("SD init failed!");
+    while (1);
+  }
+  sdHazir = true;
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("SSD1306 allocation failed"));
@@ -185,7 +199,7 @@ void sdKartCode(void * parameter) {
       servoSerce.writeMicroseconds  (kanal[7]);
     }
     
-    else if (rawMod > 3995) { // PLAYBACK MOD DOSYA İSMİ
+    else if (rawMod > 1997 && rawMod < 2097) { // PLAYBACK MOD DOSYA İSMİ
       if (playback == false) {
         currentMode = 2;
         showModeAndFile("PLAYBACK");

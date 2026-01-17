@@ -58,7 +58,7 @@ bool sdHazir  = false;
 
 #define playbackArti 35
 #define playbackEksi 36 //PLACEHOLDER
-#define kolModu 34
+#define kolModu 39
 
 
 TaskHandle_t iletisim;

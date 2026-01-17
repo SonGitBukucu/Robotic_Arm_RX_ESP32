@@ -1,3 +1,6 @@
+// MUSTAFA ALPER KAYA
+// KODDA PİN DEĞERLERİ HER AN DEĞİŞİKLİĞE UĞRAYABİLİR.
+
 #include <Arduino.h>
 #include <SPI.h>
 
@@ -14,21 +17,30 @@
 #define NRF24CE   4
 #define NRF24CSN  5 //PLACEHOLDER
 
-#define servoEnable 32 //servoların çalışması için bu pinin HIGH olması lazım
-#define servoPanPin   0
-#define servoBilekPin   33
-#define servoTiltPin   2
-#define servoBasPin   16
-#define servoIsaretPin   17
+// HSPI (SD Kart için özel pinler)
+// SCK: 13, MISO: 34, MOSI: 33, CS: 25
+#define SD_SCK  13
+#define SD_MISO 34
+#define SD_MOSI 33
+#define SD_CS   25
+SPIClass hspi(HSPI);
+
+#define servoEnable 15 //servoların çalışması için bu pinin HIGH olması lazım
+#define servoPanPin   16
+#define servoTiltPin   17
+#define servoBilekPin   18
+#define servoBasPin   19
+#define servoIsaretPin   32
 #define servoOrtaPin   25
 #define servoYuzukPin   26
 #define servoSercePin   27
 
 bool arm = false;
 
-#define playbackArti
-#define playbackEksi
-#define kolModu
+#define playbackArti 35
+#define playbackEksi 36 //PLACEHOLDER
+#define kolModu 34
+int mod;
 
 TaskHandle_t iletisim;
 TaskHandle_t sdKart;
@@ -60,6 +72,10 @@ void setup() {
   Serial.begin(115200);
 
   pinMode(servoEnable, OUTPUT);
+  pinMode(playbackArti, INPUT);
+  pinMode(playbackEksi, INPUT);
+  pinMode(kolModu, INPUT);
+
   xTaskCreatePinnedToCore(
     iletisimCode, /* Function to implement the task */
     "Task1", /* Name of the task */
@@ -133,8 +149,16 @@ void iletisimCode( void * parameter) {
 void sdKartCode( void * parameter) {
   Serial.println(xPortGetCoreID());
   for(;;) {
-    Serial.println(sayac1++);
-    delay(1000);
+    int rawMod = analogRead(kolModu);
+    if (rawMod < 100) { // SERBEST MOD
+      
+    }
+    else if (rawMod > 3995) { // PLAYBACK MOD
+
+    }
+    else { // KAYIT MOD
+
+    }
   }
 }
 

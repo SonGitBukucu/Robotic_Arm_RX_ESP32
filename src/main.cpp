@@ -128,15 +128,6 @@ void iletisimCode( void * parameter) {
       for (int i = 0; i < 8; i++) { //ne olur ne olmaz koruması
         kanal[i] = constrain(kanal[i], 1000, 2000);
       }
-      servoPan.writeMicroseconds    (kanal[0]);
-      servoTilt.writeMicroseconds   (kanal[1]);
-      servoBilek.writeMicroseconds  (kanal[2]);
-      servoBas.writeMicroseconds    (kanal[3]);
-      servoIsaret.writeMicroseconds (kanal[4]);
-      servoOrta.writeMicroseconds   (kanal[5]);
-      servoYuzuk.writeMicroseconds  (kanal[6]);
-      servoSerce.writeMicroseconds  (kanal[7]);
-
   }
   if (arm == true && millis() - basarili >= failsafeAralik) {
     failSafe();
@@ -151,7 +142,14 @@ void sdKartCode( void * parameter) {
   for(;;) {
     int rawMod = analogRead(kolModu);
     if (rawMod < 100) { // SERBEST MOD   
-
+      servoPan.writeMicroseconds    (kanal[0]);
+      servoTilt.writeMicroseconds   (kanal[1]);
+      servoBilek.writeMicroseconds  (kanal[2]);
+      servoBas.writeMicroseconds    (kanal[3]);
+      servoIsaret.writeMicroseconds (kanal[4]);
+      servoOrta.writeMicroseconds   (kanal[5]);
+      servoYuzuk.writeMicroseconds  (kanal[6]);
+      servoSerce.writeMicroseconds  (kanal[7]);
     }
     else if (rawMod > 3995) { // PLAYBACK MOD
 

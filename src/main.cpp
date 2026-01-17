@@ -33,10 +33,10 @@ SPIClass hspi(HSPI);
 #define servoTiltPin   17
 #define servoBilekPin   18
 #define servoBasPin   19
-#define servoIsaretPin   32
-#define servoOrtaPin   25
-#define servoYuzukPin   26
-#define servoSercePin   27
+#define servoIsaretPin   25
+#define servoOrtaPin   26
+#define servoYuzukPin   27
+#define servoSercePin   32
 
 bool arm = false;
 bool serbest = false;

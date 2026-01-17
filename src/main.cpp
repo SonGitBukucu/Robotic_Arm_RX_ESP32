@@ -38,9 +38,9 @@ SPIClass hspi(HSPI);
 #define servoYuzukPin   27
 #define servoSercePin   32
 
-bool arm = false;
-bool serbest = false;
-bool kayit = false;
+bool arm      = false;
+bool serbest  = false;
+bool kayit    = false;
 bool playback = false;
 
 #define playbackArti 35
@@ -50,9 +50,6 @@ bool playback = false;
 
 TaskHandle_t iletisim;
 TaskHandle_t sdKart;
-
-int sayac0 = 0;
-int sayac1 = 0;
 
 void iletisimCode(void * parameter);
 void sdKartCode(void * parameter);
@@ -97,7 +94,9 @@ void setup() {
     1,  /* Priority of the task */
     &iletisim,  /* Task handle. */
     1); /* Core where the task should run */
+  
   delay(500);
+  
   xTaskCreatePinnedToCore(
     sdKartCode, /* Function to implement the task */
     "sdKart", /* Name of the task */
@@ -165,7 +164,10 @@ void sdKartCode(void * parameter) {
         display.print("SERBEST");
         //display.setFont();
         display.display();
+        
         serbest = true;
+        playback = false;
+        kayit = false;
       }
       
       servoPan.writeMicroseconds    (kanal[0]);
@@ -194,7 +196,10 @@ void sdKartCode(void * parameter) {
             
         display.print("DOSYA");
         display.display();
+        
+        serbest = false;
         playback = true;
+        kayit = false;
       }
       //PLAYBACK GERİ KALANI
     }
@@ -215,6 +220,9 @@ void sdKartCode(void * parameter) {
             
         display.print("DOSYA");
         display.display();
+        
+        serbest = false;
+        playback = false;
         kayit = true;
       }
       //KAYIT GERİ KALANI

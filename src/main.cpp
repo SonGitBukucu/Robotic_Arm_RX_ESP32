@@ -109,6 +109,10 @@ void iletisimCode( void * parameter) {
       
       basarili = millis();
       radio.read(&kanal,sizeof(kanal));
+      for (int i = 0; i < 8; i++) { //ne olur ne olmaz koruması
+        kanal[i] = constrain(kanal[i], 1000, 2000);
+      }
+      
       servoPan.writeMicroseconds    (kanal[0]);
       servoTilt.writeMicroseconds   (kanal[1]);
       servoBilek.writeMicroseconds  (kanal[2]);

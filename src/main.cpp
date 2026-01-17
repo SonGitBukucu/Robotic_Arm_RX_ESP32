@@ -2,8 +2,6 @@
 // KODDA PİN DEĞERLERİ HER AN DEĞİŞİKLİĞE UĞRAYABİLİR.
 
 #include <Arduino.h>
-#include <SPI.h>
-
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -15,7 +13,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 #include <RF24.h>
 #include <nRF24L01.h>
-
+#include <SPI.h>
 #include <SD.h>
 #include <ESP32Servo.h>
 
@@ -121,7 +119,7 @@ void loop() {
 
 }
 
-void iletisimCode( void * parameter) {
+void iletisimCode(void * parameter) {
   Serial.println(xPortGetCoreID());
   for(;;) {
     if (radio.available()) {
@@ -152,7 +150,7 @@ void iletisimCode( void * parameter) {
   }
 }
 
-void sdKartCode( void * parameter) {
+void sdKartCode(void * parameter) {
   Serial.println(xPortGetCoreID());
   for(;;) {
     int rawMod = analogRead(kolModu);
@@ -183,12 +181,18 @@ void sdKartCode( void * parameter) {
     else if (rawMod > 3995) { // PLAYBACK MOD DOSYA İSMİ
       if (playback == false) {
         display.clearDisplay();
-        // Cursor ayarlaması gerekebilir
+            
+        // Labels at the top
+        display.setTextSize(1);
+        //display.setCursor(15, 8);
+        display.print("PLAYBACK");
+            
+        // Values centered at the bottom
         display.setFont(&FreeSans24pt7b);
         display.setTextSize(1);
-        display.setCursor(0, 49);
-        display.print("PLAYBACK");
-        //display.setFont();
+        display.setCursor(0, 49); // left quarter for duty
+            
+        display.print("DOSYA");
         display.display();
         playback = true;
       }

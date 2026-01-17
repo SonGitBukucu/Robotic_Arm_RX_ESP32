@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <Fonts/FreeSans24pt7b.h>
+#include <Fonts/FreeSans12pt7b.h>
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -33,6 +33,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 SPIClass hspi = SPIClass(HSPI);
 SPIClass vspi = SPIClass(VSPI);
 
+#define ekranAdres 0x3C
+
 #define servoEnable       14 //servoların çalışması için bu pinin HIGH olması lazım
 #define servoPanPin       16
 #define servoTiltPin      17
@@ -55,6 +57,7 @@ bool serbest  = false;
 bool kayit    = false;
 bool playback = false;
 bool sdHazir  = false;
+bool failsafe = false;
 
 #define playbackArti 35
 #define playbackEksi 36 //PLACEHOLDER
@@ -183,7 +186,13 @@ void sdKartCode(void * parameter) {
     if (rawMod < 100) { // SERBEST MOD
       if (serbest == false) {
         currentMode = 0;
-        showModeAndFile("SERBEST");
+        display.clearDisplay();
+        display.setFont(&FreeSans12pt7b);
+        display.setTextSize(1);
+        display.setCursor(21 / 2, 23);
+        display.print("SERBEST");
+        display.display();
+
         serbest = true;
         playback = false;
         kayit = false;
@@ -250,6 +259,16 @@ void buttonTask(void * parameter) {
 
 
 void failSafe() {
+  if (failsafe == false) {
+    failsafe = true;
+    display.clearDisplay();
+    display.setFont(&FreeSans12pt7b);
+    display.setTextSize(1);
+    display.setCursor(5, 39);
+    display.print("FAIL-SAFE");
+    display.display();
+  }
+  
   kanal[0] = 1500;
   kanal[1] = 1500;
   kanal[2] = 1500;
@@ -270,22 +289,33 @@ void failSafe() {
 
   while (millis() - basarili >= failsafeAralik) {
     if (radio.available()) {
+      display.clearDisplay();
+      failsafe = false;
       return;
     }  
   }
 }
 
 void showModeAndFile(const char *modeText) {
+  int16_t x_1, y_1, x_2, y_2;
+  uint16_t w_1, h_1, w_2, h_2;
+  
   display.clearDisplay();
 
+  display.setFont(&FreeSans12pt7b);
   display.setTextSize(1);
-  display.setCursor(0, 10);
+  display.getTextBounds(modeText, 0, 0, &x_1, &y_1, &w_1, &h_1);
+
+  display.setCursor((SCREEN_WIDTH - w_1) / 2, 20);
   display.print(modeText);
 
-  display.setFont(&FreeSans24pt7b);
+  display.setFont(&FreeSans12pt7b);
+  display.setTextSize(2);
+  String numara = "H-" + String(currentFileIndex);
+  display.getTextBounds(numara, 0, 0, &x_2, &y_2, &w_2, &h_2);
   display.setCursor(0, 49);
 
-  display.print("HRKT-");
+  display.print("H-");
   display.print(currentFileIndex);
 
   display.display();

@@ -40,7 +40,7 @@ bool arm = false;
 #define playbackArti 35
 #define playbackEksi 36 //PLACEHOLDER
 #define kolModu 34
-int mod;
+
 
 TaskHandle_t iletisim;
 TaskHandle_t sdKart;
@@ -119,16 +119,15 @@ void iletisimCode( void * parameter) {
         servoOrta.attach(servoOrtaPin);
         servoYuzuk.attach(servoYuzukPin);
         servoSerce.attach(servoSercePin);
+        digitalWrite(servoEnable, HIGH);
         arm = true;
       }
-      digitalWrite(servoEnable, HIGH);
-      
+
       basarili = millis();
       radio.read(&kanal,sizeof(kanal));
       for (int i = 0; i < 8; i++) { //ne olur ne olmaz koruması
         kanal[i] = constrain(kanal[i], 1000, 2000);
       }
-      
       servoPan.writeMicroseconds    (kanal[0]);
       servoTilt.writeMicroseconds   (kanal[1]);
       servoBilek.writeMicroseconds  (kanal[2]);
@@ -137,6 +136,7 @@ void iletisimCode( void * parameter) {
       servoOrta.writeMicroseconds   (kanal[5]);
       servoYuzuk.writeMicroseconds  (kanal[6]);
       servoSerce.writeMicroseconds  (kanal[7]);
+
   }
   if (arm == true && millis() - basarili >= failsafeAralik) {
     failSafe();
@@ -150,8 +150,8 @@ void sdKartCode( void * parameter) {
   Serial.println(xPortGetCoreID());
   for(;;) {
     int rawMod = analogRead(kolModu);
-    if (rawMod < 100) { // SERBEST MOD
-      
+    if (rawMod < 100) { // SERBEST MOD   
+
     }
     else if (rawMod > 3995) { // PLAYBACK MOD
 

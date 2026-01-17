@@ -7,6 +7,11 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Fonts/FreeSans24pt7b.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 #include <RF24.h>
 #include <nRF24L01.h>
@@ -36,6 +41,9 @@ SPIClass hspi(HSPI);
 #define servoSercePin   27
 
 bool arm = false;
+bool serbest = false;
+bool kayit = false;
+bool playback = false;
 
 #define playbackArti 35
 #define playbackEksi 36 //PLACEHOLDER
@@ -70,6 +78,13 @@ RF24 radio(NRF24CE, NRF24CSN);
 
 void setup() {
   Serial.begin(115200);
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;);
+  }
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
 
   pinMode(servoEnable, OUTPUT);
   pinMode(playbackArti, INPUT);
@@ -141,7 +156,20 @@ void sdKartCode( void * parameter) {
   Serial.println(xPortGetCoreID());
   for(;;) {
     int rawMod = analogRead(kolModu);
-    if (rawMod < 100) { // SERBEST MOD OLED EKRANDA YAZ  
+    if (rawMod < 100) { // SERBEST MOD
+      if (serbest == false) {
+        display.clearDisplay();
+
+        // Cursor ayarlaması gerekebilir
+        display.setFont(&FreeSans24pt7b);
+        display.setTextSize(1);
+        display.setCursor(0, 49);
+        display.print("SERBEST");
+        //display.setFont();
+        display.display();
+        serbest = true;
+      }
+      
       servoPan.writeMicroseconds    (kanal[0]);
       servoTilt.writeMicroseconds   (kanal[1]);
       servoBilek.writeMicroseconds  (kanal[2]);
@@ -151,11 +179,41 @@ void sdKartCode( void * parameter) {
       servoYuzuk.writeMicroseconds  (kanal[6]);
       servoSerce.writeMicroseconds  (kanal[7]);
     }
-    else if (rawMod > 3995) { // PLAYBACK MOD DOSYA İSMİ OLED EKRANDA YAZ
-
+    
+    else if (rawMod > 3995) { // PLAYBACK MOD DOSYA İSMİ
+      if (playback == false) {
+        display.clearDisplay();
+        // Cursor ayarlaması gerekebilir
+        display.setFont(&FreeSans24pt7b);
+        display.setTextSize(1);
+        display.setCursor(0, 49);
+        display.print("PLAYBACK");
+        //display.setFont();
+        display.display();
+        playback = true;
+      }
+      //PLAYBACK GERİ KALANI
     }
-    else { // KAYIT MOD OLED EKRANDA YAZ
-
+    
+    else { // KAYIT MOD
+      if (kayit == false) {
+        display.clearDisplay();
+            
+        // Labels at the top
+        display.setTextSize(1);
+        //display.setCursor(15, 8);
+        display.print("KAYIT");
+            
+        // Values centered at the bottom
+        display.setFont(&FreeSans24pt7b);
+        display.setTextSize(1);
+        display.setCursor(0, 49); // left quarter for duty
+            
+        display.print("DOSYA");
+        display.display();
+        kayit = true;
+      }
+      //KAYIT GERİ KALANI
     }
   }
 }
@@ -169,7 +227,6 @@ void failSafe() {
   kanal[5] = 1500;
   kanal[6] = 1500;
   kanal[7] = 1500;
-
 
   servoPan.writeMicroseconds    (kanal[0]);
   servoTilt.writeMicroseconds   (kanal[1]);
@@ -186,4 +243,3 @@ void failSafe() {
     }  
   }
 }
-  

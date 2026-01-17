@@ -91,7 +91,7 @@ void setup() {
 
   xTaskCreatePinnedToCore(
     iletisimCode, /* Function to implement the task */
-    "Task1", /* Name of the task */
+    "iletisim", /* Name of the task */
     10000,  /* Stack size in words */
     NULL,  /* Task input parameter */
     1,  /* Priority of the task */
@@ -100,7 +100,7 @@ void setup() {
   delay(500);
   xTaskCreatePinnedToCore(
     sdKartCode, /* Function to implement the task */
-    "Task1", /* Name of the task */
+    "sdKart", /* Name of the task */
     10000,  /* Stack size in words */
     NULL,  /* Task input parameter */
     1,  /* Priority of the task */

@@ -39,6 +39,13 @@ SPIClass hspi(HSPI);
 #define servoSercePin   32
 
 bool arm      = false;
+
+volatile byte currentMode = 0; 
+// 0 = SERBEST, 1 = KAYIT, 2 = PLAYBACK
+
+volatile int currentFileIndex = 0;
+const int maxFiles = 20;
+
 bool serbest  = false;
 bool kayit    = false;
 bool playback = false;
@@ -52,7 +59,10 @@ TaskHandle_t iletisim;
 TaskHandle_t sdKart;
 
 void iletisimCode(void * parameter);
+void failSafe();
 void sdKartCode(void * parameter);
+void buttonTask(void * parameter);
+void showModeAndFile(const char*);
 
 Servo servoPan;
 Servo servoTilt;
@@ -137,7 +147,7 @@ void iletisimCode(void * parameter) {
 
       basarili = millis();
       radio.read(&kanal,sizeof(kanal));
-      for (int i = 0; i < sizeof(kanal); i++) { //ne olur ne olmaz koruması
+      for (int i = 0; i < 8; i++) { //ne olur ne olmaz koruması
         kanal[i] = constrain(kanal[i], 1000, 2000);
       }
   }
@@ -155,16 +165,8 @@ void sdKartCode(void * parameter) {
     int rawMod = analogRead(kolModu);
     if (rawMod < 100) { // SERBEST MOD
       if (serbest == false) {
-        display.clearDisplay();
-
-        // Cursor ayarlaması gerekebilir
-        display.setFont(&FreeSans24pt7b);
-        display.setTextSize(1);
-        display.setCursor(0, 49);
-        display.print("SERBEST");
-        //display.setFont();
-        display.display();
-        
+        currentMode = 0;
+        showModeAndFile("SERBEST");
         serbest = true;
         playback = false;
         kayit = false;
@@ -182,21 +184,8 @@ void sdKartCode(void * parameter) {
     
     else if (rawMod > 3995) { // PLAYBACK MOD DOSYA İSMİ
       if (playback == false) {
-        display.clearDisplay();
-            
-        // Labels at the top
-        display.setTextSize(1);
-        //display.setCursor(15, 8);
-        display.print("PLAYBACK");
-            
-        // Values centered at the bottom
-        display.setFont(&FreeSans24pt7b);
-        display.setTextSize(1);
-        display.setCursor(0, 49); // left quarter for duty
-            
-        display.print("DOSYA");
-        display.display();
-        
+        currentMode = 2;
+        showModeAndFile("SERBEST");
         serbest = false;
         playback = true;
         kayit = false;
@@ -206,21 +195,8 @@ void sdKartCode(void * parameter) {
     
     else { // KAYIT MOD
       if (kayit == false) {
-        display.clearDisplay();
-            
-        // Labels at the top
-        display.setTextSize(1);
-        //display.setCursor(15, 8);
-        display.print("KAYIT");
-            
-        // Values centered at the bottom
-        display.setFont(&FreeSans24pt7b);
-        display.setTextSize(1);
-        display.setCursor(0, 49); // left quarter for duty
-            
-        display.print("DOSYA");
-        display.display();
-        
+        currentMode = 1;
+        showModeAndFile("KAYIT");
         serbest = false;
         playback = false;
         kayit = true;
@@ -229,6 +205,32 @@ void sdKartCode(void * parameter) {
     }
   }
 }
+
+void buttonTask(void * parameter) {
+  bool lastUp = true;
+  bool lastDown = true;
+
+  for (;;) {
+    bool up = digitalRead(playbackArti);
+    bool down = digitalRead(playbackEksi);
+
+    if (up == LOW && lastUp == HIGH) {
+      currentFileIndex++;
+      if (currentFileIndex >= maxFiles) currentFileIndex = 0;
+    }
+
+    if (down == LOW && lastDown == HIGH) {
+      currentFileIndex--;
+      if (currentFileIndex < 0) currentFileIndex = maxFiles - 1;
+    }
+
+    lastUp = up;
+    lastDown = down;
+
+    vTaskDelay(pdMS_TO_TICKS(150)); // debounce
+  }
+}
+
 
 void failSafe() {
   kanal[0] = 1500;
@@ -254,4 +256,20 @@ void failSafe() {
       return;
     }  
   }
+}
+
+void showModeAndFile(const char *modeText) {
+  display.clearDisplay();
+
+  display.setTextSize(1);
+  display.setCursor(0, 10);
+  display.print(modeText);
+
+  display.setFont(&FreeSans24pt7b);
+  display.setCursor(0, 49);
+
+  display.print("HRKT");
+  display.print(currentFileIndex);
+
+  display.display();
 }

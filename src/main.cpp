@@ -26,7 +26,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define SD_MISO 34
 #define SD_MOSI 33
 #define SD_CS   25
-SPIClass hspi(HSPI);
+SPIClass hspi = SPIClass(HSPI);
 
 #define servoEnable 15 //servoların çalışması için bu pinin HIGH olması lazım
 #define servoPanPin   16
@@ -61,6 +61,8 @@ TaskHandle_t sdKart;
 void iletisimCode(void * parameter);
 void failSafe();
 void sdKartCode(void * parameter);
+void sdKayit();
+void sdPlayback();
 void buttonTask(void * parameter);
 void showModeAndFile(const char*);
 
@@ -82,6 +84,7 @@ const byte nrf24kod[5] = {'r','o','b','o','t'};
 RF24 radio(NRF24CE, NRF24CSN);
 
 void setup() {
+  hspi.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS); // SCK, MISO, MOSI, CS
   Serial.begin(115200);
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
@@ -185,7 +188,7 @@ void sdKartCode(void * parameter) {
     else if (rawMod > 3995) { // PLAYBACK MOD DOSYA İSMİ
       if (playback == false) {
         currentMode = 2;
-        showModeAndFile("SERBEST");
+        showModeAndFile("PLAYBACK");
         serbest = false;
         playback = true;
         kayit = false;
@@ -268,8 +271,67 @@ void showModeAndFile(const char *modeText) {
   display.setFont(&FreeSans24pt7b);
   display.setCursor(0, 49);
 
-  display.print("HRKT");
+  display.print("HRKT-");
   display.print(currentFileIndex);
 
   display.display();
+}
+
+void handleRecord() {
+  static unsigned long lastWrite = 0;
+
+  if (millis() - lastWrite < 20) return; // 50 Hz
+  lastWrite = millis();
+
+  char filename[12];
+  sprintf(filename, "/F%d.txt", currentFileIndex);
+
+  File file = SD.open(filename, FILE_APPEND);
+  if (!file) return;
+
+  for (int i = 0; i < 8; i++) {
+    file.print(kanal[i]);
+    if (i < 7) file.print(",");
+  }
+  file.println();
+
+  file.close();
+}
+
+void handlePlayback() {
+  static File file;
+  static bool fileOpen = false;
+
+  if (!fileOpen) {
+    char filename[12];
+    sprintf(filename, "/HRKT-%d.txt", currentFileIndex);
+    file = SD.open(filename);
+    if (!file) return;
+    fileOpen = true;
+  }
+
+  if (!file.available()) {
+    file.close();
+    fileOpen = false;
+    return;
+  }
+
+  String line = file.readStringUntil('\n');
+
+  int values[8];
+  sscanf(line.c_str(),
+         "%d,%d,%d,%d,%d,%d,%d,%d",
+         &values[0], &values[1], &values[2], &values[3],
+         &values[4], &values[5], &values[6], &values[7]);
+
+  servoPan.writeMicroseconds(values[0]);
+  servoTilt.writeMicroseconds(values[1]);
+  servoBilek.writeMicroseconds(values[2]);
+  servoBas.writeMicroseconds(values[3]);
+  servoIsaret.writeMicroseconds(values[4]);
+  servoOrta.writeMicroseconds(values[5]);
+  servoYuzuk.writeMicroseconds(values[6]);
+  servoSerce.writeMicroseconds(values[7]);
+
+  delay(20); // playback speed
 }

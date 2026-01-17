@@ -264,7 +264,7 @@ void failSafe() {
     display.clearDisplay();
     display.setFont(&FreeSans12pt7b);
     display.setTextSize(1);
-    display.setCursor(5, 39);
+    display.setCursor(11 / 2, 39);
     display.print("FAIL-SAFE");
     display.display();
   }

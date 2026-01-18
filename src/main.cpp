@@ -440,10 +440,10 @@ void sdKayit() {
 
   // --- enter recording ---
   if (!recordingActive) {
-    char filename[32];
-    sprintf(filename, "/hareketler/H-%d.txt", currentFileIndex);
+    char fileName[32];
+    sprintf(fileName, "/hareketler/H-%d.txt", currentFileIndex);
 
-    recFile = SD.open(filename, FILE_WRITE);
+    recFile = SD.open(fileName, FILE_WRITE);
     if (!recFile) {
       showText("KAYIT HATA");
       return;
@@ -490,10 +490,10 @@ void sdPlayback() {
 
   // ---- Open file once ----
   if (!fileOpen) {
-    char filename[20];
-    sprintf(filename, "/hareketler/H-%d.txt", currentFileIndex);
+    char fileName[32];
+    sprintf(fileName, "/hareketler/H-%d.txt", currentFileIndex);
 
-    file = SD.open(filename);
+    file = SD.open(fileName);
     if (!file) {
       Serial.println("Playback file open failed");
       return;

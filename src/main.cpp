@@ -74,6 +74,7 @@ void sdKayit();
 void sdPlayback();
 void buttonTask(void * parameter);
 void showModeAndFile(const char*);
+void showText(const char *);
 
 Servo servoPan;
 Servo servoTilt;
@@ -100,6 +101,7 @@ void setup() {
 
   if (!SD.begin(SD_CS, hspi, 4000000)) {
     Serial.println("SD init failed!");
+    showText("SD HATA");
     while (1);
   }
   sdHazir = true;
@@ -186,12 +188,7 @@ void sdKartCode(void * parameter) {
     if (rawMod < 100) { // SERBEST MOD
       if (serbest == false) {
         currentMode = 0;
-        display.clearDisplay();
-        display.setFont(&FreeSans12pt7b);
-        display.setTextSize(1);
-        display.setCursor(21 / 2, 23);
-        display.print("SERBEST");
-        display.display();
+        showText("SERBEST");
 
         serbest = true;
         playback = false;
@@ -261,12 +258,7 @@ void buttonTask(void * parameter) {
 void failSafe() {
   if (failsafe == false) {
     failsafe = true;
-    display.clearDisplay();
-    display.setFont(&FreeSans12pt7b);
-    display.setTextSize(1);
-    display.setCursor(11 / 2, 39);
-    display.print("FAIL-SAFE");
-    display.display();
+    showText("FAIL-SAFE");
   }
   
   kanal[0] = 1500;
@@ -318,6 +310,20 @@ void showModeAndFile(const char *modeText) {
   display.print("H-");
   display.print(currentFileIndex);
 
+  display.display();
+}
+
+void showText(const char *text) {
+  int16_t x_2, y_2;
+  uint16_t w_2, h_2;
+  
+  display.clearDisplay();
+
+  display.setFont(&FreeSans12pt7b);
+  display.setTextSize(1);
+  display.getTextBounds(text, 0, 0, &x_2, &y_2, &w_2, &h_2);
+  display.setCursor((SCREEN_WIDTH - w_2) / 2, 39);
+  display.print(text);
   display.display();
 }
 

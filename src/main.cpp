@@ -45,7 +45,7 @@ SPIClass vspi = SPIClass(VSPI);
 #define servoYuzukPin     27
 #define servoSercePin     32
 
-bool arm      = false;
+
 
 volatile byte currentMode = 0; 
 // 0 = SERBEST, 1 = KAYIT, 2 = PLAYBACK
@@ -53,6 +53,7 @@ volatile byte currentMode = 0;
 volatile int currentFileIndex = 0;
 const int maxFiles = 20;
 
+bool arm      = false;
 bool serbest  = false;
 bool kayit    = false;
 bool playback = false;
@@ -66,13 +67,13 @@ bool failsafe = false;
 
 TaskHandle_t iletisim;
 TaskHandle_t sdKart;
+TaskHandle_t dugmeler;
 
 void iletisimCode(void * parameter);
 void failSafe();
 void sdKartCode(void * parameter);
 void sdKayit();
 void sdPlayback();
-void buttonTask(void * parameter);
 void showModeAndFile(const char*);
 void showText(const char *);
 
@@ -98,6 +99,8 @@ void setup() {
   vspi.begin(NRF24_SCK, NRF24_MISO, NRF24_MOSI, NRF24_CSN); // SCK, MISO, MOSI, CS
 
   Serial.begin(115200);
+
+  
 
   if (!SD.begin(SD_CS, hspi, 4000000)) {
     Serial.println("SD init failed!");
@@ -138,7 +141,7 @@ void setup() {
     &sdKart,  /* Task handle. */
     0); /* Core where the task should run */
 
-  radio.begin();
+  radio.begin(&vspi);
   radio.openReadingPipe(1,nrf24kod);
   radio.setChannel(76);
   radio.setDataRate(RF24_250KBPS);
@@ -205,7 +208,7 @@ void sdKartCode(void * parameter) {
       servoSerce.writeMicroseconds  (kanal[7]);
     }
     
-    else if (rawMod > 1997 && rawMod < 2097) { // PLAYBACK MOD DOSYA İSMİ
+    else if (rawMod > 1800 && rawMod < 2000) { // PLAYBACK MOD DOSYA İSMİ
       if (playback == false) {
         currentMode = 2;
         showModeAndFile("PLAYBACK");
@@ -226,6 +229,7 @@ void sdKartCode(void * parameter) {
       }
       //KAYIT GERİ KALANI
     }
+    vTaskDelay(1);
   }
 }
 
@@ -258,7 +262,7 @@ void buttonTask(void * parameter) {
 void failSafe() {
   if (failsafe == false) {
     failsafe = true;
-    showText("FAIL-SAFE");
+    //showText("FAIL-SAFE");
   }
   
   kanal[0] = 1500;
@@ -305,7 +309,7 @@ void showModeAndFile(const char *modeText) {
   display.setTextSize(2);
   String numara = "H-" + String(currentFileIndex);
   display.getTextBounds(numara, 0, 0, &x_2, &y_2, &w_2, &h_2);
-  display.setCursor(0, 49);
+  display.setCursor(0, 60);
 
   display.print("H-");
   display.print(currentFileIndex);

@@ -426,7 +426,7 @@ void showText(const char *text) {
   display.setFont(&FreeSans12pt7b);
   display.setTextSize(1);
   display.getTextBounds(text, 0, 0, &x_2, &y_2, &w_2, &h_2);
-  display.setCursor((SCREEN_WIDTH - w_2) / 2, 39);
+  display.setCursor((SCREEN_WIDTH - w_2) / 2, 40);
   display.print(text);
   display.display();
 }

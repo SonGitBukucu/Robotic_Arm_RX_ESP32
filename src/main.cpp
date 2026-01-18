@@ -497,7 +497,7 @@ void sdPlayback() {
     char fileName[32];
     sprintf(fileName, "/hareketler/H-%d.txt", currentFileIndex);
 
-    file = SD.open(fileName);
+    file = SD.open(fileName, FILE_APPEND);
     if (!file) {
       Serial.println("Playback file open failed");
       return;

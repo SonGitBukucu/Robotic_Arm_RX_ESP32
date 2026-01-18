@@ -228,7 +228,7 @@ void sdKartCode(void * parameter) {
 
     }
     
-    else if (rawMod > 1800 && rawMod < 2000) { // PLAYBACK MOD DOSYA İSMİ
+    else if (rawMod > 3996) { // PLAYBACK MOD DOSYA İSMİ
       stopRecordingIfNeeded();
 
       if (playback == false) {

@@ -50,6 +50,9 @@ volatile byte currentMode = 0;
 
 volatile int currentFileIndex = 0;
 const int maxFiles = 1001;
+static File recFile;
+static bool recordingActive = false;
+static unsigned long lastRecWrite = 0;
 
 bool arm      = false;
 bool serbest  = false;
@@ -76,6 +79,7 @@ void sdPlayback();
 void dugmelerCode(void * parameter);
 void showModeAndFile(const char*);
 void showText(const char *);
+void stopRecordingIfNeeded();
 
 Servo servoPan;
 Servo servoTilt;
@@ -211,26 +215,22 @@ void sdKartCode(void * parameter) {
 
     int rawMod = analogRead(kolModu);
     if (rawMod < 100) { // SERBEST MOD
+      stopRecordingIfNeeded();
+
       if (serbest == false) {
         currentMode = 0;
-        showText("SERBEST");
+        showModeAndFile("SERBEST");
 
         serbest = true;
         playback = false;
         kayit = false;
       }
-      
-      servoPan.writeMicroseconds    (kanal[0]);
-      servoTilt.writeMicroseconds   (kanal[1]);
-      servoBilek.writeMicroseconds  (kanal[2]);
-      servoBas.writeMicroseconds    (kanal[3]);
-      servoIsaret.writeMicroseconds (kanal[4]);
-      servoOrta.writeMicroseconds   (kanal[5]);
-      servoYuzuk.writeMicroseconds  (kanal[6]);
-      servoSerce.writeMicroseconds  (kanal[7]);
+
     }
     
     else if (rawMod > 1800 && rawMod < 2000) { // PLAYBACK MOD DOSYA İSMİ
+      stopRecordingIfNeeded();
+
       if (playback == false) {
         currentMode = 2;
         showModeAndFile("PLAYBACK");
@@ -242,17 +242,42 @@ void sdKartCode(void * parameter) {
     }
     
     else { // KAYIT MOD
-      if (kayit == false) {
+      if (!kayit) {
+        stopRecordingIfNeeded(); // safety
         currentMode = 1;
         showModeAndFile("KAYIT");
+      
         serbest = false;
         playback = false;
         kayit = true;
       }
+    
     }
-    if (kayit && currentFileIndex != TAS_KAGIT_MAKAS) {
-      sdKayit();
+    
+    if (currentMode == 0) {
+            
+      servoPan.writeMicroseconds    (kanal[0]);
+      servoTilt.writeMicroseconds   (kanal[1]);
+      servoBilek.writeMicroseconds  (kanal[2]);
+      servoBas.writeMicroseconds    (kanal[3]);
+      servoIsaret.writeMicroseconds (kanal[4]);
+      servoOrta.writeMicroseconds   (kanal[5]);
+      servoYuzuk.writeMicroseconds  (kanal[6]);
+      servoSerce.writeMicroseconds  (kanal[7]);
     }
+
+    if (currentMode == 1) {
+      if (currentFileIndex != TAS_KAGIT_MAKAS) {
+        sdKayit();
+      }
+    }
+
+    else if (currentMode == 2) {
+      if (currentFileIndex != TAS_KAGIT_MAKAS) {
+        sdPlayback();
+      }
+    }
+
     vTaskDelay(1);
   }
 }
@@ -360,13 +385,24 @@ void showModeAndFile(const char *modeText) {
 
   display.setFont(&FreeSans12pt7b);
   display.setTextSize(1);
+  
   display.getTextBounds(modeText, 0, 0, &x_1, &y_1, &w_1, &h_1);
 
-  display.setCursor((SCREEN_WIDTH - w_1) / 2, 20);
+  display.setCursor((SCREEN_WIDTH - w_1) / 2, (SCREEN_HEIGHT - h_1) / 2);
   display.print(modeText);
 
   display.setFont(&FreeSans12pt7b);
   display.setTextSize(2);
+
+  if (currentFileIndex == TAS_KAGIT_MAKAS) {
+    display.setTextSize(2);
+    display.getTextBounds("TKM", 0, 0, &x_2, &y_2, &w_2, &h_2);
+    display.setCursor((SCREEN_WIDTH - w_2) / 2, 60);
+    display.print("TKM");
+    display.display();
+    return;
+  }
+
   String numara = "H-" + String(currentFileIndex);
   display.getTextBounds(numara, 0, 0, &x_2, &y_2, &w_2, &h_2);
   display.setCursor(0, 60);
@@ -392,57 +428,102 @@ void showText(const char *text) {
 }
 
 void sdKayit() {
+  // --- special move protection ---
   if (currentFileIndex == TAS_KAGIT_MAKAS) {
-    showText("TKM");
+    if (recordingActive) {
+      recFile.close();
+      recordingActive = false;
+    }
+    showText("TKM KORUMA");
     return;
   }
-  
-  static unsigned long lastWrite = 0;
 
-  if (millis() - lastWrite < 20) return; // 50 Hz
-  lastWrite = millis();
+  // --- enter recording ---
+  if (!recordingActive) {
+    char filename[16];
+    sprintf(filename, "/H-%d.txt", currentFileIndex);
 
-  char filename[12];
-  sprintf(filename, "/F%d.txt", currentFileIndex);
+    recFile = SD.open(filename, FILE_WRITE);
+    if (!recFile) {
+      showText("KAYIT HATA");
+      return;
+    }
 
-  File file = SD.open(filename, FILE_APPEND);
-  if (!file) return;
+    recordingActive = true;
+    lastRecWrite = 0;
+    
+  }
+
+  // --- write at 50 Hz ---
+  if (millis() - lastRecWrite < 20) return;
+  lastRecWrite = millis();
 
   for (int i = 0; i < 8; i++) {
-    file.print(kanal[i]);
-    if (i < 7) file.print(",");
+    recFile.print(kanal[i]);
+    if (i < 7) recFile.print(";");
   }
-  file.println();
-
-  file.close();
+  recFile.println();
 }
 
-void handlePlayback() {
+void stopRecordingIfNeeded() {
+  if (recordingActive) {
+    recFile.close();
+    recordingActive = false;
+    showText("KAYIT BITTI");
+  }
+}
+
+void sdPlayback() {
   static File file;
   static bool fileOpen = false;
+  static unsigned long lastStep = 0;
 
+  // Playback timing (50 Hz)
+  if (millis() - lastStep < 20) return;
+  lastStep = millis();
+
+  // ---- TKM SPECIAL MOVE ----
+  if (currentFileIndex == TAS_KAGIT_MAKAS) {
+    //runTKM();   // your rock-paper-scissors logic
+    return;
+  }
+
+  // ---- Open file once ----
   if (!fileOpen) {
-    char filename[12];
-    sprintf(filename, "/HRKT-%d.txt", currentFileIndex);
+    char filename[20];
+    sprintf(filename, "/H-%d.txt", currentFileIndex);
+
     file = SD.open(filename);
-    if (!file) return;
+    if (!file) {
+      Serial.println("Playback file open failed");
+      return;
+    }
+
     fileOpen = true;
   }
 
+  // ---- End of file ----
   if (!file.available()) {
     file.close();
     fileOpen = false;
     return;
   }
 
+  // ---- Read one frame ----
   String line = file.readStringUntil('\n');
+  line.replace(';' , ',');
 
   int values[8];
-  sscanf(line.c_str(),
-         "%d,%d,%d,%d,%d,%d,%d,%d",
-         &values[0], &values[1], &values[2], &values[3],
-         &values[4], &values[5], &values[6], &values[7]);
+  int count = sscanf(
+    line.c_str(),
+    "%d,%d,%d,%d,%d,%d,%d,%d",
+    &values[0], &values[1], &values[2], &values[3],
+    &values[4], &values[5], &values[6], &values[7]
+  );
 
+  if (count != 8) return; // corrupted line protection
+
+  // ---- Apply to servos ----
   servoPan.writeMicroseconds(values[0]);
   servoTilt.writeMicroseconds(values[1]);
   servoBilek.writeMicroseconds(values[2]);
@@ -451,6 +532,4 @@ void handlePlayback() {
   servoOrta.writeMicroseconds(values[5]);
   servoYuzuk.writeMicroseconds(values[6]);
   servoSerce.writeMicroseconds(values[7]);
-
-  delay(20); // playback speed
 }

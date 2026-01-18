@@ -100,8 +100,6 @@ void setup() {
 
   Serial.begin(115200);
 
-  
-
   if (!SD.begin(SD_CS, hspi, 4000000)) {
     Serial.println("SD init failed!");
     showText("SD HATA");
@@ -252,7 +250,9 @@ void sdKartCode(void * parameter) {
         kayit = true;
       }
     }
-    sdKayit();
+    if (kayit && currentFileIndex != TAS_KAGIT_MAKAS) {
+      sdKayit();
+    }
     vTaskDelay(1);
   }
 }

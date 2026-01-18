@@ -162,6 +162,7 @@ void setup() {
 }
 
 void loop() {
+  Serial.println(analogRead(kolModu));
 
 }
 
@@ -214,7 +215,7 @@ void sdKartCode(void * parameter) {
     }
 
     int rawMod = analogRead(kolModu);
-    if (rawMod < 100) { // SERBEST MOD
+    if (rawMod < 1000) { // SERBEST MOD
       stopRecordingIfNeeded();
 
       if (serbest == false) {
@@ -228,7 +229,7 @@ void sdKartCode(void * parameter) {
 
     }
     
-    else if (rawMod > 3996) { // PLAYBACK MOD DOSYA İSMİ
+    else if (rawMod > 3096) { // PLAYBACK MOD DOSYA İSMİ
       stopRecordingIfNeeded();
 
       if (playback == false) {

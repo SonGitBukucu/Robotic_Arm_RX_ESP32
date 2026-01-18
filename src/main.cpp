@@ -45,13 +45,11 @@ SPIClass vspi = SPIClass(VSPI);
 #define servoYuzukPin     27
 #define servoSercePin     32
 
-
-
 volatile byte currentMode = 0; 
 // 0 = SERBEST, 1 = KAYIT, 2 = PLAYBACK
 
 volatile int currentFileIndex = 0;
-const int maxFiles = 1000;
+const int maxFiles = 1001;
 
 bool arm      = false;
 bool serbest  = false;
@@ -63,7 +61,7 @@ bool failsafe = false;
 #define playbackArti 35
 #define playbackEksi 36 //PLACEHOLDER
 #define kolModu 39
-
+#define TAS_KAGIT_MAKAS 1000
 
 TaskHandle_t iletisim;
 TaskHandle_t sdKart;
@@ -123,6 +121,7 @@ void setup() {
   pinMode(playbackEksi, INPUT);
   pinMode(kolModu, INPUT);
 
+  dugmeSira = xQueueCreate(10, sizeof(int));
   xTaskCreatePinnedToCore(
     iletisimCode, /* Function to implement the task */
     "iletisim", /* Name of the task */
@@ -152,7 +151,6 @@ void setup() {
     &dugmeler,
     1);
 
-  dugmeSira = xQueueCreate(5, sizeof(int));
   radio.begin(&vspi);
   radio.openReadingPipe(1,nrf24kod);
   radio.setChannel(76);
@@ -253,8 +251,8 @@ void sdKartCode(void * parameter) {
         playback = false;
         kayit = true;
       }
-      //KAYIT GERİ KALANI
     }
+    sdKayit();
     vTaskDelay(1);
   }
 }
@@ -263,24 +261,61 @@ void dugmelerCode(void * parameter) {
   bool lastUp = HIGH;
   bool lastDown = HIGH;
 
+  unsigned long upPressedAt = 0;
+  unsigned long downPressedAt = 0;
+
   for (;;) {
     bool up = digitalRead(playbackArti);
     bool down = digitalRead(playbackEksi);
 
+    unsigned long now = millis();
+
+    // ---- UP button ----
     if (up == LOW && lastUp == HIGH) {
+      upPressedAt = now;                 // just pressed
       int evt = +1;
       xQueueSend(dugmeSira, &evt, 0);
     }
 
+    if (up == LOW && lastUp == LOW) {
+      unsigned long held = now - upPressedAt;
+
+      int step = 0;
+      if (held > 1250) step = +10;
+      else if (held > 750) step = +5;
+      else if (held > 250) step = +1;
+
+      if (step != 0) {
+        xQueueSend(dugmeSira, &step, 0);
+        vTaskDelay(pdMS_TO_TICKS(120));  // repeat rate
+      }
+    }
+
+    // ---- DOWN button ----
     if (down == LOW && lastDown == HIGH) {
+      downPressedAt = now;
       int evt = -1;
       xQueueSend(dugmeSira, &evt, 0);
+    }
+
+    if (down == LOW && lastDown == LOW) {
+      unsigned long held = now - downPressedAt;
+
+      int step = 0;
+      if (held > 1250) step = -10;
+      else if (held > 750) step = -5;
+      else if (held > 250) step = -1;
+
+      if (step != 0) {
+        xQueueSend(dugmeSira, &step, 0);
+        vTaskDelay(pdMS_TO_TICKS(120));
+      }
     }
 
     lastUp = up;
     lastDown = down;
 
-    vTaskDelay(pdMS_TO_TICKS(20)); // FAST scan, stable edges
+    vTaskDelay(pdMS_TO_TICKS(20)); // base scan rate
   }
 }
 
@@ -356,7 +391,12 @@ void showText(const char *text) {
   display.display();
 }
 
-void handleRecord() {
+void sdKayit() {
+  if (currentFileIndex == TAS_KAGIT_MAKAS) {
+    showText("TKM");
+    return;
+  }
+  
   static unsigned long lastWrite = 0;
 
   if (millis() - lastWrite < 20) return; // 50 Hz

@@ -51,7 +51,7 @@ volatile byte currentMode = 0;
 // 0 = SERBEST, 1 = KAYIT, 2 = PLAYBACK
 
 volatile int currentFileIndex = 0;
-const int maxFiles = 20;
+const int maxFiles = 1000;
 
 bool arm      = false;
 bool serbest  = false;
@@ -68,12 +68,14 @@ bool failsafe = false;
 TaskHandle_t iletisim;
 TaskHandle_t sdKart;
 TaskHandle_t dugmeler;
+QueueHandle_t dugmeSira;
 
 void iletisimCode(void * parameter);
 void failSafe();
 void sdKartCode(void * parameter);
 void sdKayit();
 void sdPlayback();
+void dugmelerCode(void * parameter);
 void showModeAndFile(const char*);
 void showText(const char *);
 
@@ -141,6 +143,16 @@ void setup() {
     &sdKart,  /* Task handle. */
     0); /* Core where the task should run */
 
+  xTaskCreatePinnedToCore(
+    dugmelerCode,
+    "dugmeler",
+    10000,
+    NULL,
+    1,
+    &dugmeler,
+    1);
+
+  dugmeSira = xQueueCreate(5, sizeof(int));
   radio.begin(&vspi);
   radio.openReadingPipe(1,nrf24kod);
   radio.setChannel(76);
@@ -187,6 +199,20 @@ void iletisimCode(void * parameter) {
 void sdKartCode(void * parameter) {
   Serial.println(xPortGetCoreID());
   for(;;) {
+    int evt;
+    while (xQueueReceive(dugmeSira, &evt, 0) == pdTRUE) {
+      currentFileIndex += evt;
+    
+      if (currentFileIndex >= maxFiles) currentFileIndex = 0;
+      if (currentFileIndex < 0) currentFileIndex = maxFiles - 1;
+    
+      showModeAndFile(
+        currentMode == 2 ? "PLAYBACK" :
+        currentMode == 1 ? "KAYIT" :
+                           "SERBEST"
+      );
+    }
+
     int rawMod = analogRead(kolModu);
     if (rawMod < 100) { // SERBEST MOD
       if (serbest == false) {
@@ -233,31 +259,30 @@ void sdKartCode(void * parameter) {
   }
 }
 
-void buttonTask(void * parameter) {
-  bool lastUp = true;
-  bool lastDown = true;
+void dugmelerCode(void * parameter) {
+  bool lastUp = HIGH;
+  bool lastDown = HIGH;
 
   for (;;) {
     bool up = digitalRead(playbackArti);
     bool down = digitalRead(playbackEksi);
 
     if (up == LOW && lastUp == HIGH) {
-      currentFileIndex++;
-      if (currentFileIndex >= maxFiles) currentFileIndex = 0;
+      int evt = +1;
+      xQueueSend(dugmeSira, &evt, 0);
     }
 
     if (down == LOW && lastDown == HIGH) {
-      currentFileIndex--;
-      if (currentFileIndex < 0) currentFileIndex = maxFiles - 1;
+      int evt = -1;
+      xQueueSend(dugmeSira, &evt, 0);
     }
 
     lastUp = up;
     lastDown = down;
 
-    vTaskDelay(pdMS_TO_TICKS(150)); // debounce
+    vTaskDelay(pdMS_TO_TICKS(20)); // FAST scan, stable edges
   }
 }
-
 
 void failSafe() {
   if (failsafe == false) {

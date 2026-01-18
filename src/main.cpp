@@ -201,6 +201,10 @@ void sdKartCode(void * parameter) {
   for(;;) {
     int evt;
     while (xQueueReceive(dugmeSira, &evt, 0) == pdTRUE) {
+      if (currentMode == 1) {
+      continue; // ignore changes during recording
+      }
+      
       currentFileIndex += evt;
     
       if (currentFileIndex >= maxFiles) currentFileIndex = 0;

@@ -440,8 +440,8 @@ void sdKayit() {
 
   // --- enter recording ---
   if (!recordingActive) {
-    char filename[16];
-    sprintf(filename, "/H-%d.txt", currentFileIndex);
+    char filename[32];
+    sprintf(filename, "/hareketler/H-%d.txt", currentFileIndex);
 
     recFile = SD.open(filename, FILE_WRITE);
     if (!recFile) {
@@ -491,7 +491,7 @@ void sdPlayback() {
   // ---- Open file once ----
   if (!fileOpen) {
     char filename[20];
-    sprintf(filename, "/H-%d.txt", currentFileIndex);
+    sprintf(filename, "/hareketler/H-%d.txt", currentFileIndex);
 
     file = SD.open(filename);
     if (!file) {
@@ -511,12 +511,11 @@ void sdPlayback() {
 
   // ---- Read one frame ----
   String line = file.readStringUntil('\n');
-  line.replace(';' , ',');
 
   int values[8];
   int count = sscanf(
     line.c_str(),
-    "%d,%d,%d,%d,%d,%d,%d,%d",
+    "%d;%d;%d;%d;%d;%d;%d;%d",
     &values[0], &values[1], &values[2], &values[3],
     &values[4], &values[5], &values[6], &values[7]
   );

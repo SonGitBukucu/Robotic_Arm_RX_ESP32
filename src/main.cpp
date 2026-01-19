@@ -102,17 +102,16 @@ void setup() {
   hspi.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS); // SCK, MISO, MOSI, CS
   vspi.begin(NRF24_SCK, NRF24_MISO, NRF24_MOSI, NRF24_CSN); // SCK, MISO, MOSI, CS
 
-  Serial.begin(115200);
 
   if (!SD.begin(SD_CS, hspi, 4000000)) {
-    Serial.println("SD init failed!");
+    //Serial.println("SD init failed!");
     showText("SD HATA");
     while (1);
   }
   sdHazir = true;
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println(F("SSD1306 allocation failed"));
+    //Serial.println(F("SSD1306 allocation failed"));
     for (;;);
   }
   display.clearDisplay();
@@ -166,7 +165,7 @@ void loop() {
 }
 
 void iletisimCode(void * parameter) {
-  Serial.println(xPortGetCoreID());
+  //Serial.println(xPortGetCoreID());
   for(;;) {
     if (radio.available()) {
       if (arm == false) {
@@ -191,13 +190,12 @@ void iletisimCode(void * parameter) {
   if (arm == true && millis() - basarili >= failsafeAralik) {
     failSafe();
   }
-
   vTaskDelay(1); //şimdilik dursun, daha sonra kaldırınca ne olur ona bakacağım
   }
 }
 
 void sdKartCode(void * parameter) {
-  Serial.println(xPortGetCoreID());
+  //Serial.println(xPortGetCoreID());
   for(;;) {
     int evt;
     while (xQueueReceive(dugmeSira, &evt, 0) == pdTRUE) {
@@ -351,7 +349,7 @@ void dugmelerCode(void * parameter) {
 void failSafe() {
   if (failsafe == false) {
     failsafe = true;
-    //showText("FAIL-SAFE");
+    showText("FAIL-SAFE");
   }
   
   kanal[0] = 1500;
@@ -473,7 +471,7 @@ void stopRecordingIfNeeded() {
   if (recordingActive) {
     recFile.close();
     recordingActive = false;
-    showText("KAYIT BITTI");
+    //showText("KAYIT BITTI");
   }
 }
 
@@ -499,7 +497,7 @@ void sdPlayback() {
 
     file = SD.open(fileName, FILE_APPEND);
     if (!file) {
-      Serial.println("Playback file open failed");
+      //Serial.println("Playback file open failed");
       return;
     }
 

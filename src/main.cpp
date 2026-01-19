@@ -102,6 +102,7 @@ void setup() {
   hspi.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS); // SCK, MISO, MOSI, CS
   vspi.begin(NRF24_SCK, NRF24_MISO, NRF24_MOSI, NRF24_CSN); // SCK, MISO, MOSI, CS
 
+  //Serial.begin(115200);
 
   if (!SD.begin(SD_CS, hspi, 4000000)) {
     //Serial.println("SD init failed!");
@@ -109,6 +110,8 @@ void setup() {
     while (1);
   }
   sdHazir = true;
+
+  delay(150);
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     //Serial.println(F("SSD1306 allocation failed"));
@@ -465,6 +468,15 @@ void sdKayit() {
     if (i < 7) recFile.print(";");
   }
   recFile.println();
+
+  servoPan.writeMicroseconds    (kanal[0]);
+  servoTilt.writeMicroseconds   (kanal[1]);
+  servoBilek.writeMicroseconds  (kanal[2]);
+  servoBas.writeMicroseconds    (kanal[3]);
+  servoIsaret.writeMicroseconds (kanal[4]);
+  servoOrta.writeMicroseconds   (kanal[5]);
+  servoYuzuk.writeMicroseconds  (kanal[6]);
+  servoSerce.writeMicroseconds  (kanal[7]);
 }
 
 void stopRecordingIfNeeded() {
@@ -479,39 +491,47 @@ void sdPlayback() {
   static File file;
   static bool fileOpen = false;
   static unsigned long lastStep = 0;
+  static int lastFileIndex = -1;
+
+  if (!sdHazir) return;
 
   // Playback timing (50 Hz)
   if (millis() - lastStep < 20) return;
   lastStep = millis();
 
+  // ---- Detect file change ----
+  if (currentFileIndex != lastFileIndex) {
+    if (fileOpen) {
+      file.close();
+      fileOpen = false;
+    }
+    lastFileIndex = currentFileIndex;
+  }
+
   // ---- TKM SPECIAL MOVE ----
   if (currentFileIndex == TAS_KAGIT_MAKAS) {
-    //runTKM();   // your rock-paper-scissors logic
     return;
   }
 
-  // ---- Open file once ----
   if (!fileOpen) {
     char fileName[32];
     sprintf(fileName, "/hareketler/H-%d.txt", currentFileIndex);
 
-    file = SD.open(fileName, FILE_APPEND);
+    file = SD.open(fileName, FILE_READ);
     if (!file) {
-      //Serial.println("Playback file open failed");
+      showModeAndFile("PB YOK");
       return;
     }
 
     fileOpen = true;
   }
 
-  // ---- End of file ----
   if (!file.available()) {
     file.close();
     fileOpen = false;
     return;
   }
 
-  // ---- Read one frame ----
   String line = file.readStringUntil('\n');
 
   int values[8];
@@ -522,9 +542,8 @@ void sdPlayback() {
     &values[4], &values[5], &values[6], &values[7]
   );
 
-  if (count != 8) return; // corrupted line protection
+  if (count != 8) return;
 
-  // ---- Apply to servos ----
   servoPan.writeMicroseconds(values[0]);
   servoTilt.writeMicroseconds(values[1]);
   servoBilek.writeMicroseconds(values[2]);

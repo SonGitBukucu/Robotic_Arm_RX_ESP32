@@ -35,7 +35,6 @@ SPIClass vspi = SPIClass(VSPI);
 
 #define ekranAdres 0x3C
 
-#define servoEnable       14 //servoların çalışması için bu pinin HIGH olması lazım
 #define servoPanPin       16
 #define servoTiltPin      17
 #define servoBilekPin     12
@@ -120,7 +119,6 @@ void setup() {
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
 
-  pinMode(servoEnable, OUTPUT);
   pinMode(playbackArti, INPUT);
   pinMode(playbackEksi, INPUT);
   pinMode(kolModu, INPUT);
@@ -180,7 +178,6 @@ void iletisimCode(void * parameter) {
         servoOrta.attach(servoOrtaPin);
         servoYuzuk.attach(servoYuzukPin);
         servoSerce.attach(servoSercePin);
-        digitalWrite(servoEnable, HIGH);
         arm = true;
       }
 
@@ -502,7 +499,7 @@ void sdPlayback() {
     wasInPlayback = false;
     return;
   }
-  
+
   if (!wasInPlayback) {
     // JUST ENTERED PLAYBACK
     if (fileOpen) file.close();

@@ -375,7 +375,11 @@ void failSafe() {
 
   while (millis() - basarili >= failsafeAralik) {
     if (radio.available()) {
-      display.clearDisplay();
+      showModeAndFile(
+        currentMode == 2 ? "PLAYBACK" :
+        currentMode == 1 ? "KAYIT" :
+                           "SERBEST"
+      );
       failsafe = false;
       return;
     }  

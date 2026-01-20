@@ -107,7 +107,7 @@ void setup() {
   if (!SD.begin(SD_CS, hspi, 4000000)) {
     //Serial.println("SD init failed!");
     showText("SD HATA");
-    while (1);
+    while (1) {};
   }
   sdHazir = true;
 

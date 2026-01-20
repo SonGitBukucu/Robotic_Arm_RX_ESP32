@@ -108,6 +108,7 @@ void setup() {
     for (;;);
   }
   display.clearDisplay();
+  display.display();
   display.setTextColor(SSD1306_WHITE);
 
   if (!SD.begin(SD_CS, hspi, 4000000)) {

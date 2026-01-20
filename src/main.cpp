@@ -133,8 +133,6 @@ void setup() {
     &iletisim,  /* Task handle. */
     1); /* Core where the task should run */
   
-  delay(500);
-  
   xTaskCreatePinnedToCore(
     sdKartCode, /* Function to implement the task */
     "sdKart", /* Name of the task */

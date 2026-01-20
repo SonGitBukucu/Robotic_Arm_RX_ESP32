@@ -496,6 +496,21 @@ void sdPlayback() {
   static bool fileOpen = false;
   static unsigned long lastStep = 0;
   static int lastFileIndex = -1;
+  static bool wasInPlayback = false;
+
+  if (currentMode != 2) {
+    wasInPlayback = false;
+    return;
+  }
+  
+  if (!wasInPlayback) {
+    // JUST ENTERED PLAYBACK
+    if (fileOpen) file.close();
+    fileOpen = false;
+    lastFileIndex = -1;
+    lastStep = 0;
+    wasInPlayback = true;
+  }
 
   if (!sdHazir) return;
 

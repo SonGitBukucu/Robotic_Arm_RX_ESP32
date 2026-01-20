@@ -59,7 +59,9 @@ bool kayit    = false;
 bool playback = false;
 bool sdHazir  = false;
 bool failsafe = false;
+bool iletisimVar = false;
 
+#define DEBUG_LED 14
 #define playbackArti 35
 #define playbackEksi 36 //PLACEHOLDER
 #define kolModu 39
@@ -120,6 +122,7 @@ void setup() {
 
   delay(150);
 
+  pinMode(DEBUG_LED, OUTPUT);
   pinMode(playbackArti, INPUT);
   pinMode(playbackEksi, INPUT);
   pinMode(kolModu, INPUT);
@@ -178,6 +181,11 @@ void iletisimCode(void * parameter) {
         servoYuzuk.attach(servoYuzukPin);
         servoSerce.attach(servoSercePin);
         arm = true;
+      }
+
+      if (iletisimVar == false) {
+        iletisimVar = true;
+        digitalWrite(DEBUG_LED, HIGH);
       }
 
       basarili = millis();
@@ -350,6 +358,11 @@ void failSafe() {
     failsafe = true;
     showText("FAIL-SAFE");
   }
+
+  if (iletisimVar == true) {
+    iletisimVar = false;
+    digitalWrite(DEBUG_LED, LOW);
+  }
   
   kanal[0] = 1500;
   kanal[1] = 1500;
@@ -371,6 +384,7 @@ void failSafe() {
 
   while (millis() - basarili >= failsafeAralik) {
     if (radio.available()) {
+      digitalWrite(DEBUG_LED, HIGH);
       showModeAndFile(
         currentMode == 2 ? "PLAYBACK" :
         currentMode == 1 ? "KAYIT" :

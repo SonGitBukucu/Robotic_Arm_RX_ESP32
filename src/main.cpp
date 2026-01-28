@@ -1,6 +1,9 @@
 // MUSTAFA ALPER KAYA
 // KODDA PİN DEĞERLERİ HER AN DEĞİŞİKLİĞE UĞRAYABİLİR.
 
+/* #########################        YAPILACAKLAR       #########################
+  %0 Güç kaybı durumunda veri koruması için flush eklemesi
+   #########################        YAPILACAKLAR       ######################### */
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>

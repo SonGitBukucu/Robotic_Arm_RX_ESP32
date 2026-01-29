@@ -1,5 +1,6 @@
 // MUSTAFA ALPER KAYA
 // NRF24L01+ modüllerini kullanan robot kol projesinin "kol" (alıcı) kodu.
+// ÖZEL MODLAR İÇİN HEM ÖZEL MOD İSMİNİ enum İÇERİSİNE HEM DE KISALTMASINI getSpecialName() İÇİNE YAZMAYI UNUTMAYIN
 
 /*#####################################################         KANAL SIRALAMASI         #####################################################
   Keyfinize göre açın, kapatın, değiştirin.

@@ -1,8 +1,21 @@
 // MUSTAFA ALPER KAYA
+// NRF24L01+ modüllerini kullanan robot kol projesinin "kol" (alıcı) kodu.
+
+/*#####################################################         KANAL SIRALAMASI         #####################################################
+  Keyfinize göre açın, kapatın, değiştirin.
+  1 = Pan
+  2 = Tilt
+  3 = Bilek
+  4 = Baş Parmak
+  5 = İşaret Parmak
+  6 = Orta Parmak
+  7 = Yüzük Parmak
+  8 = Serçe Parmak
+######################         DOĞRU ÇALIŞMASI İÇİN LÜTFEN HEM VERİCİDE HEM DE ALICIDA AYNI SIRALAMAYI YAPIN         #######################*/
 
 /* #########################        YAPILACAKLAR       #########################
-  %0 Özel modlar için ayrı playback yapma
-  %0 Özel modlar için ayrı bir durum
+  TEST Özel modlar için ayrı playback yapma
+  TEST Özel modlar için ayrı bir durum
    #########################        YAPILACAKLAR       ######################### */
 
 #include <Arduino.h>
@@ -10,35 +23,103 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Fonts/FreeSans12pt7b.h>
-
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-
 #include <RF24.h>
 #include <nRF24L01.h>
 #include <SPI.h>
 #include <SD.h>
 #include <ESP32Servo.h>
 
+
+//######################################                OLED EKRAN                ######################################
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+#define ekranAdres 0x3C
+//######################################                OLED EKRAN                ######################################
+
+//######################################                NRF24                ######################################
 #define NRF24_CE   2
 #define NRF24_CSN  5
 #define NRF24_SCK  18
 #define NRF24_MISO 19
 #define NRF24_MOSI 23
+SPIClass vspi = SPIClass(VSPI);
 
+bool arm      = false;
+bool failsafe = false;
+bool iletisimVar = false;
+#define DEBUG_LED 14
+
+unsigned long basarili = 0;
+unsigned int failsafeAralik = 700; // fail-safe devreye girmesi için gereken süre.
+
+short kanal[8];
+
+const byte nrf24kod[5] = {'r','o','b','o','t'}; 
+RF24 radio(NRF24_CE, NRF24_CSN);
+//######################################                NRF24                ######################################
+
+
+//######################################                SD KART                ######################################
 // HSPI (SD Kart için özel pinler)
 // SCK: 13, MISO: 34, MOSI: 33, CS: 25
 #define SD_SCK  13
 #define SD_MISO 34
 #define SD_MOSI 33
 #define SD_CS   4
-
 SPIClass hspi = SPIClass(HSPI);
-SPIClass vspi = SPIClass(VSPI);
+//######################################                SD KART                ######################################
 
-#define ekranAdres 0x3C
+//######################################                KOLUN KENDİSİ                ######################################
+#define KareAralik 20 // İki "kare" arasındaki milisaniye farkı. 1000 / KareAralik Sistemin Hz değerini verir.
+volatile int currentFileIndex = 0;
+const int maxFiles = toplamOzelHareket;
+static File recFile;
+static bool recordingActive = false;
+static unsigned long lastRecWrite = 0;
 
+bool serbest  = false;
+bool kayit    = false;
+bool playback = false;
+bool sdHazir  = false;
+
+#define playbackArti 35
+#define playbackEksi 36
+#define kolModu 39
+
+volatile byte currentMode = 0; 
+// 0 = SERBEST, 1 = KAYIT, 2 = PLAYBACK
+//######################################                KOLUN KENDİSİ                ######################################
+
+//######################################                ÖZEL MODLAR                 ######################################
+// ÖZEL MOD EKLERSENİZ KISALTMASINI getSpecialName() İÇİNE EKLEMEYİ UNUTMAYIN
+#define OzelBaslangic 1000
+enum OzelHareketler {
+  TAS_KAGIT_MAKAS = OzelBaslangic,
+  EL_SALLA,
+  toplamOzelHareket, //BUNUN EN SONDAKİ ELEMAN OLDUĞUNDA DİKKAT EDİN
+};
+//######################################                ÖZEL MODLAR                ######################################
+
+//######################################                BİLDİRİMLER                ######################################
+TaskHandle_t iletisim;    //NRF24'ler ile ilgili olan fonksiyonları çalıştırır. Çekirdek 1'de çalışır.
+TaskHandle_t sdKart;      //SD kart ile ilgili fonksiyonları çalıştırır.    Çekirdek 0'da çalışır.
+TaskHandle_t dugmeler;    //Düğmeler ile ilgili fonksiyonları çalıştırır.  Çekirdek 1'de çalışır.
+QueueHandle_t dugmeSira;  //Düğmelere basıldığında duyurU yapar.
+
+void iletisimCode(void * parameter);  //NRF24'lerin arasında iletişim kurmasını sağlayan fonksiyon.
+void failSafe();  //NRF24 failsafeAralik (şu an 700ms) kadar boyunca iletişim kuramazsa robot kolu FAIL-SAFE moduna geçiren fonksiyon.
+void sdKartCode(void * parameter);  //Robot kolun hangi modda olduğunu belirleyen ve kolun o moda göre davranmasını sağlayan fonksiyon.
+void sdKayit(); //KAYIT modunda kayıt yapılmasını sağlayan fonksiyon.
+void sdPlayback();  //PLAYBACK modunda playback yapılmasını sağlayan fonksiyon.
+void dugmelerCode(void * parameter);  //Düğmelere basılıp basılmadığını kontrol eden fonksiyon.
+const char* getSpecialName(int index);  //Özel hareketler için belirlenmiş kısaltmalardan gerekeni seçen fonksiyon.
+void showModeAndFile(const char*);  //OLED ekranda robot kolun durumunu yukarda, dosya ismini aşağıda gösteren fonksiyon.
+void showText(const char *);  //OLED ekranda bir yazıyı otomatik olarak ortalayıp yazdıran fonksiyon.
+void stopRecordingIfNeeded(); //Bir sebepten ötürü kayıtta olunmaması gerekirken hala kayıttaysa kaydı durduran fonksiyon.
+//######################################                BİLDİRİMLER                ######################################
+
+//######################################                SERVO                ######################################
 #define servoPanPin       16
 #define servoTiltPin      17
 #define servoBilekPin     12
@@ -48,55 +129,6 @@ SPIClass vspi = SPIClass(VSPI);
 #define servoYuzukPin     27
 #define servoSercePin     32
 
-volatile byte currentMode = 0; 
-// 0 = SERBEST, 1 = KAYIT, 2 = PLAYBACK
-
-//#########################       ÖZEL MODLAR       #########################
-// ÖZEL MOD EKLERSENİZ KISALTMASINI getSpecialName() İÇİNE EKLEMEYİ UNUTMAYIN
-#define OzelBaslangic 1000
-enum OzelHareketler {
-  TAS_KAGIT_MAKAS = OzelBaslangic,
-  EL_SALLA,
-  toplamOzelHareket, //BUNUN EN SONDAKİ ELEMAN OLDUĞUNDA DİKKAT EDİN
-};
-//#########################       ÖZEL MODLAR       #########################
-
-#define KareAralik 50 // İki "kare" arasındaki milisaniye farkı. 1000 / KareAralik Sistemin Hz değerini verir.
-volatile int currentFileIndex = 0;
-const int maxFiles = toplamOzelHareket;
-static File recFile;
-static bool recordingActive = false;
-static unsigned long lastRecWrite = 0;
-
-bool arm      = false;
-bool serbest  = false;
-bool kayit    = false;
-bool playback = false;
-bool sdHazir  = false;
-bool failsafe = false;
-bool iletisimVar = false;
-
-#define DEBUG_LED 14
-#define playbackArti 35
-#define playbackEksi 36
-#define kolModu 39
-
-TaskHandle_t iletisim;
-TaskHandle_t sdKart;
-TaskHandle_t dugmeler;
-QueueHandle_t dugmeSira;
-
-void iletisimCode(void * parameter);
-void failSafe();
-void sdKartCode(void * parameter);
-void sdKayit();
-void sdPlayback();
-void dugmelerCode(void * parameter);
-const char* getSpecialName(int index);
-void showModeAndFile(const char*);
-void showText(const char *);
-void stopRecordingIfNeeded();
-
 Servo servoPan;
 Servo servoTilt;
 Servo servoBilek;
@@ -105,14 +137,9 @@ Servo servoIsaret;
 Servo servoOrta;
 Servo servoYuzuk;
 Servo servoSerce;
+//######################################                SERVO                ######################################
 
-unsigned long basarili = 0;
-unsigned int failsafeAralik = 700; // fail-safe devreye girmesi için gereken süre.
-
-short kanal[8];
-
-const byte nrf24kod[5] = {'r','o','b','o','t'}; 
-RF24 radio(NRF24_CE, NRF24_CSN);
+//######################################                FONKSİYON TANIMLARI                ######################################
 
 void setup() {
   hspi.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS); // SCK, MISO, MOSI, CS
@@ -645,3 +672,5 @@ void sdPlayback() {
   servoYuzuk.writeMicroseconds(values[6]);
   servoSerce.writeMicroseconds(values[7]);
 }
+
+//######################################                FONKSİYON TANIMLARI                ######################################

@@ -53,11 +53,16 @@ volatile byte currentMode = 0;
 // 0 = SERBEST, 1 = KAYIT, 2 = PLAYBACK
 
 //#########################       ÖZEL MODLAR       #########################
-#define TAS_KAGIT_MAKAS 1000
+#define OzelBaslangic 1000
+enum OzelHareketler {
+  TAS_KAGIT_MAKAS = OzelBaslangic,
+  EL_SALLA,
+  toplamOzelHareket, //BUNUN EN SONDAKİ ELEMAN OLDUĞUNDA DİKKAT EDİN
+};
 //#########################       ÖZEL MODLAR       #########################
 
 volatile int currentFileIndex = 0;
-const int maxFiles = 1001;
+const int maxFiles = toplamOzelHareket;
 static File recFile;
 static bool recordingActive = false;
 static unsigned long lastRecWrite = 0;
@@ -86,6 +91,7 @@ void sdKartCode(void * parameter);
 void sdKayit();
 void sdPlayback();
 void dugmelerCode(void * parameter);
+const char* getSpecialName(int index);
 void showModeAndFile(const char*);
 void showText(const char *);
 void stopRecordingIfNeeded();
@@ -284,15 +290,11 @@ void sdKartCode(void * parameter) {
     }
 
     if (currentMode == 1) {
-      if (currentFileIndex != TAS_KAGIT_MAKAS) {
         sdKayit();
-      }
     }
 
     else if (currentMode == 2) {
-      if (currentFileIndex != TAS_KAGIT_MAKAS) {
         sdPlayback();
-      }
     }
 
     vTaskDelay(1);
@@ -404,6 +406,14 @@ void failSafe() {
   }
 }
 
+const char* getSpecialName(int index) {
+  switch (index) {
+    case TAS_KAGIT_MAKAS: return "TKM";
+    case EL_SALLA:          return "SLM";
+    default:                return "SPC";
+  }
+}
+
 void showModeAndFile(const char *modeText) {
   int16_t x_1, y_1, x_2, y_2;
   uint16_t w_1, h_1, w_2, h_2;
@@ -421,14 +431,16 @@ void showModeAndFile(const char *modeText) {
   display.setFont(&FreeSans12pt7b);
   display.setTextSize(2);
 
-  if (currentFileIndex == TAS_KAGIT_MAKAS) {
-    display.setTextSize(2);
-    display.getTextBounds("TKM", 0, 0, &x_2, &y_2, &w_2, &h_2);
-    display.setCursor((SCREEN_WIDTH - w_2) / 2, 60);
-    display.print("TKM");
-    display.display();
-    return;
-  }
+if (currentFileIndex >= OzelBaslangic) {
+  const char* name = getSpecialName(currentFileIndex);
+
+  display.setTextSize(2);
+  display.getTextBounds(name, 0, 0, &x_2, &y_2, &w_2, &h_2);
+  display.setCursor((SCREEN_WIDTH - w_2) / 2, 60);
+  display.print(name);
+  display.display();
+  return;
+}
 
   String numara = "H-" + String(currentFileIndex);
   display.getTextBounds(numara, 0, 0, &x_2, &y_2, &w_2, &h_2);
@@ -456,12 +468,12 @@ void showText(const char *text) {
 
 void sdKayit() {
   // --- special move protection ---
-  if (currentFileIndex == TAS_KAGIT_MAKAS) {
+  if (currentFileIndex >= OzelBaslangic) {
     if (recordingActive) {
       recFile.close();
       recordingActive = false;
     }
-    showText("TKM KORUMA");
+    showText("OZEL MOD");
     return;
   }
 
@@ -546,7 +558,46 @@ void sdPlayback() {
   }
 
   // ---- TKM SPECIAL MOVE ----
-  if (currentFileIndex == TAS_KAGIT_MAKAS) {
+  if (currentFileIndex >= OzelBaslangic) {
+      if (!fileOpen) {
+      char fileName[32];
+      sprintf(fileName, "/ozel/%s.txt", getSpecialName(currentFileIndex));
+
+      file = SD.open(fileName, FILE_READ);
+      if (!file) {
+        showModeAndFile("PB YOK");
+        return;
+      }
+
+      fileOpen = true;
+    }
+
+    if (!file.available()) {
+      file.close();
+      fileOpen = false;
+      return;
+    }
+
+    String line = file.readStringUntil('\n');
+
+    int values[8];
+    int count = sscanf(
+      line.c_str(),
+      "%d;%d;%d;%d;%d;%d;%d;%d",
+      &values[0], &values[1], &values[2], &values[3],
+      &values[4], &values[5], &values[6], &values[7]
+    );
+
+    if (count != 8) return;
+
+    servoPan.writeMicroseconds(values[0]);
+    servoTilt.writeMicroseconds(values[1]);
+    servoBilek.writeMicroseconds(values[2]);
+    servoBas.writeMicroseconds(values[3]);
+    servoIsaret.writeMicroseconds(values[4]);
+    servoOrta.writeMicroseconds(values[5]);
+    servoYuzuk.writeMicroseconds(values[6]);
+    servoSerce.writeMicroseconds(values[7]);
     return;
   }
 

@@ -1,6 +1,11 @@
 // MUSTAFA ALPER KAYA
 // KODDA PİN DEĞERLERİ HER AN DEĞİŞİKLİĞE UĞRAYABİLİR.
 
+/* #########################        YAPILACAKLAR       #########################
+  %0 Özel modlar için ayrı playback yapma
+  %0 Özel modlar için ayrı bir durum
+   #########################        YAPILACAKLAR       ######################### */
+
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>

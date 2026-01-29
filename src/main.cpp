@@ -1,5 +1,4 @@
 // MUSTAFA ALPER KAYA
-// KODDA PİN DEĞERLERİ HER AN DEĞİŞİKLİĞE UĞRAYABİLİR.
 
 /* #########################        YAPILACAKLAR       #########################
   %0 Özel modlar için ayrı playback yapma
@@ -23,7 +22,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #include <ESP32Servo.h>
 
 #define NRF24_CE   2
-#define NRF24_CSN  5 //PLACEHOLDER
+#define NRF24_CSN  5
 #define NRF24_SCK  18
 #define NRF24_MISO 19
 #define NRF24_MOSI 23
@@ -53,6 +52,7 @@ volatile byte currentMode = 0;
 // 0 = SERBEST, 1 = KAYIT, 2 = PLAYBACK
 
 //#########################       ÖZEL MODLAR       #########################
+// ÖZEL MOD EKLERSENİZ KISALTMASINI getSpecialName() İÇİNE EKLEMEYİ UNUTMAYIN
 #define OzelBaslangic 1000
 enum OzelHareketler {
   TAS_KAGIT_MAKAS = OzelBaslangic,
@@ -61,6 +61,7 @@ enum OzelHareketler {
 };
 //#########################       ÖZEL MODLAR       #########################
 
+#define KareAralik 50 // İki "kare" arasındaki milisaniye farkı. 1000 / KareAralik Sistemin Hz değerini verir.
 volatile int currentFileIndex = 0;
 const int maxFiles = toplamOzelHareket;
 static File recFile;
@@ -77,7 +78,7 @@ bool iletisimVar = false;
 
 #define DEBUG_LED 14
 #define playbackArti 35
-#define playbackEksi 36 //PLACEHOLDER
+#define playbackEksi 36
 #define kolModu 39
 
 TaskHandle_t iletisim;
@@ -221,14 +222,17 @@ void sdKartCode(void * parameter) {
     int evt;
     while (xQueueReceive(dugmeSira, &evt, 0) == pdTRUE) {
       if (currentMode == 1) {
-      continue; // ignore changes during recording
+      continue; // kayıtta değişme
       }
       
       currentFileIndex += evt;
     
-      if (currentFileIndex >= maxFiles) currentFileIndex = 0;
-      if (currentFileIndex < 0) currentFileIndex = maxFiles - 1;
-    
+      if (currentFileIndex >= maxFiles) {
+        currentFileIndex = 0;
+      }
+      if (currentFileIndex < 0) {
+        currentFileIndex = maxFiles - 1;
+      }
       showModeAndFile(
         currentMode == 2 ? "PLAYBACK" :
         currentMode == 1 ? "KAYIT" :
@@ -257,16 +261,16 @@ void sdKartCode(void * parameter) {
       if (playback == false) {
         currentMode = 2;
         showModeAndFile("PLAYBACK");
+
         serbest = false;
         playback = true;
         kayit = false;
       }
-      //PLAYBACK GERİ KALANI
     }
     
     else { // KAYIT MOD
       if (!kayit) {
-        stopRecordingIfNeeded(); // safety
+        stopRecordingIfNeeded(); // güvenlik
         currentMode = 1;
         showModeAndFile("KAYIT");
       
@@ -314,9 +318,9 @@ void dugmelerCode(void * parameter) {
 
     unsigned long now = millis();
 
-    // ---- UP button ----
+    // YUKARI
     if (up == LOW && lastUp == HIGH) {
-      upPressedAt = now;                 // just pressed
+      upPressedAt = now;                 // yeni basıldı
       int evt = +1;
       xQueueSend(dugmeSira, &evt, 0);
     }
@@ -331,11 +335,11 @@ void dugmelerCode(void * parameter) {
 
       if (step != 0) {
         xQueueSend(dugmeSira, &step, 0);
-        vTaskDelay(pdMS_TO_TICKS(120));  // repeat rate
+        vTaskDelay(pdMS_TO_TICKS(120));  // tekrarlama süresi
       }
     }
 
-    // ---- DOWN button ----
+    // AŞAĞI
     if (down == LOW && lastDown == HIGH) {
       downPressedAt = now;
       int evt = -1;
@@ -359,7 +363,7 @@ void dugmelerCode(void * parameter) {
     lastUp = up;
     lastDown = down;
 
-    vTaskDelay(pdMS_TO_TICKS(20)); // base scan rate
+    vTaskDelay(pdMS_TO_TICKS(20)); // aralık
   }
 }
 
@@ -467,7 +471,7 @@ void showText(const char *text) {
 }
 
 void sdKayit() {
-  // --- special move protection ---
+  // ÖZEL HAREKET
   if (currentFileIndex >= OzelBaslangic) {
     if (recordingActive) {
       recFile.close();
@@ -477,7 +481,7 @@ void sdKayit() {
     return;
   }
 
-  // --- enter recording ---
+  // KAYIT BAŞLA
   if (!recordingActive) {
     char fileName[32];
     sprintf(fileName, "/hareketler/H-%d.txt", currentFileIndex);
@@ -493,8 +497,8 @@ void sdKayit() {
     
   }
 
-  // --- write at 50 Hz ---
-  if (millis() - lastRecWrite < 20) return;
+  // 50 Hz (1000 / 20 = 50)
+  if (millis() - lastRecWrite < 1000 / KareAralik) return;
   lastRecWrite = millis();
 
   for (int i = 0; i < 8; i++) {
@@ -534,7 +538,7 @@ void sdPlayback() {
   }
 
   if (!wasInPlayback) {
-    // JUST ENTERED PLAYBACK
+    // PLAYBACK'E YENİ GİRİLDİ
     if (fileOpen) file.close();
     fileOpen = false;
     lastFileIndex = -1;
@@ -544,11 +548,11 @@ void sdPlayback() {
 
   if (!sdHazir) return;
 
-  // Playback timing (50 Hz)
-  if (millis() - lastStep < 20) return;
+  // 50 Hz (1000 / 20 = 50)
+  if (millis() - lastStep < 1000 / KareAralik) return;
   lastStep = millis();
 
-  // ---- Detect file change ----
+  // DOSYA DEĞİŞİMİ
   if (currentFileIndex != lastFileIndex) {
     if (fileOpen) {
       file.close();
@@ -557,7 +561,7 @@ void sdPlayback() {
     lastFileIndex = currentFileIndex;
   }
 
-  // ---- TKM SPECIAL MOVE ----
+  // ÖZEL HAREKET
   if (currentFileIndex >= OzelBaslangic) {
       if (!fileOpen) {
       char fileName[32];

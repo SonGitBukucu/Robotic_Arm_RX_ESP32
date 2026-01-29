@@ -52,6 +52,10 @@ SPIClass vspi = SPIClass(VSPI);
 volatile byte currentMode = 0; 
 // 0 = SERBEST, 1 = KAYIT, 2 = PLAYBACK
 
+//#########################       ÖZEL MODLAR       #########################
+#define TAS_KAGIT_MAKAS 1000
+//#########################       ÖZEL MODLAR       #########################
+
 volatile int currentFileIndex = 0;
 const int maxFiles = 1001;
 static File recFile;
@@ -70,7 +74,6 @@ bool iletisimVar = false;
 #define playbackArti 35
 #define playbackEksi 36 //PLACEHOLDER
 #define kolModu 39
-#define TAS_KAGIT_MAKAS 1000
 
 TaskHandle_t iletisim;
 TaskHandle_t sdKart;

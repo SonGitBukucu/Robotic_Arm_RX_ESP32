@@ -172,31 +172,31 @@ void setup() {
 
   dugmeSira = xQueueCreate(10, sizeof(int));
   xTaskCreatePinnedToCore(
-    iletisimCode, /* Function to implement the task */
-    "iletisim", /* Name of the task */
-    10000,  /* Stack size in words */
-    NULL,  /* Task input parameter */
-    1,  /* Priority of the task */
-    &iletisim,  /* Task handle. */
-    1); /* Core where the task should run */
+    iletisimCode, // Çalışacak fonksiyon
+    "iletisim",   // Görevin ismi
+    10000,        // Boyut
+    NULL,         // Görev girdi parametresi
+    1,            // Görev öncelik sırası
+    &iletisim,    // Görev referans ismi
+    1);           // Görevin çalışacağı çekirdek
   
   xTaskCreatePinnedToCore(
-    sdKartCode, /* Function to implement the task */
-    "sdKart", /* Name of the task */
-    10000,  /* Stack size in words */
-    NULL,  /* Task input parameter */
-    1,  /* Priority of the task */
-    &sdKart,  /* Task handle. */
-    0); /* Core where the task should run */
+    sdKartCode, // Çalışacak fonksiyon
+    "sdKart",   // Görevin ismi
+    10000,      // Boyut
+    NULL,       // Görev girdi parametresi
+    1,          // Görev öncelik sırası
+    &sdKart,    // Görev referans ismi
+    0);         // Görevin çalışacağı çekirdek
 
   xTaskCreatePinnedToCore(
-    dugmelerCode,
-    "dugmeler",
-    10000,
-    NULL,
-    1,
-    &dugmeler,
-    1);
+    dugmelerCode, // Çalışacak fonksiyon
+    "dugmeler",   // Görevin ismi
+    10000,        // Boyut
+    NULL,         // Görev girdi parametresi
+    1,            // Görev öncelik sırası
+    &dugmeler,    // Görev referans ismi
+    1);           // Görevin çalışacağı çekirdek
 
   radio.begin(&vspi);
   radio.openReadingPipe(1,nrf24kod);

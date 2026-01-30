@@ -232,7 +232,7 @@ void iletisimCode(void * parameter) {
       basarili = millis();
       radio.read(&kanal,sizeof(kanal));
       for (int i = 0; i < 8; i++) { //ne olur ne olmaz koruması
-        kanal[i] = constrain(kanal[i], 544, 2400);
+        kanal[i] = constrain(kanal[i], 600, 2400);
       }
   }
   if (arm == true && millis() - basarili >= failsafeAralik) {

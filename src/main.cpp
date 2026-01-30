@@ -4,13 +4,13 @@
 
 /*#####################################################         KANAL SIRALAMASI         #####################################################
   Keyfinize göre açın, kapatın, değiştirin.
-  1 = Tilt
-  2 = Pan
-  3 = Baş Parmak
-  4 = Bilek
-  5 = Yüzük Parmak
+  1 = Pan
+  2 = Tilt
+  3 = Bilek
+  4 = Baş Parmak
+  5 = İşaret Parmak
   6 = Orta Parmak
-  7 = İşaret Parmak
+  7 = Yüzük Parmak
   8 = Serçe Parmak
 ######################         DOĞRU ÇALIŞMASI İÇİN LÜTFEN HEM VERİCİDE HEM DE ALICIDA AYNI SIRALAMAYI YAPIN         #######################*/
 

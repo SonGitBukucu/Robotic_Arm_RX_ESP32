@@ -93,7 +93,7 @@ volatile byte currentMode = 0;
 //######################################                KOLUN KENDİSİ                ######################################
 
 //######################################                ÖZEL MODLAR                 ######################################
-// ÖZEL MOD EKLERSENİZ KISALTMASINI getSpecialName() İÇİNE EKLEMEYİ UNUTMAYIN
+// ÖZEL MOD EKLERSENİZ KISALTMASINI getSpecialName() İÇİNE EKLEMEYİ UNUTMAYIN (MAKSİMUM 5 KARAKTER)
 #define OzelBaslangic 1000
 enum OzelHareketler {
   TAS_KAGIT_MAKAS = OzelBaslangic,
@@ -114,7 +114,7 @@ void sdKartCode(void * parameter);  //Robot kolun hangi modda olduğunu belirley
 void sdKayit(); //KAYIT modunda kayıt yapılmasını sağlayan fonksiyon.
 void sdPlayback();  //PLAYBACK modunda playback yapılmasını sağlayan fonksiyon.
 void dugmelerCode(void * parameter);  //Düğmelere basılıp basılmadığını kontrol eden fonksiyon.
-const char* getSpecialName(int index);  //Özel hareketler için belirlenmiş kısaltmalardan gerekeni seçen fonksiyon.
+const char* getSpecialName(int index);  //Özel hareketler için belirlenmiş kısaltmalardan gerekeni seçen fonksiyon. (MAKSİMUM 5 KARAKTER)
 void showModeAndFile(const char*);  //OLED ekranda robot kolun durumunu yukarda, dosya ismini aşağıda gösteren fonksiyon.
 void showText(const char *);  //OLED ekranda bir yazıyı otomatik olarak ortalayıp yazdıran fonksiyon.
 void stopRecordingIfNeeded(); //Bir sebepten ötürü kayıtta olunmaması gerekirken hala kayıttaysa kaydı durduran fonksiyon.
@@ -439,10 +439,11 @@ void failSafe() {
 }
 
 const char* getSpecialName(int index) {
+//(MAKSİMUM 5 KARAKTER)
   switch (index) {
     case TAS_KAGIT_MAKAS: return "TKM";
-    case EL_SALLA:          return "SLM";
-    default:                return "SPC";
+    case EL_SALLA:          return "SELAM";
+    default:                return "OZEL";
   }
 }
 

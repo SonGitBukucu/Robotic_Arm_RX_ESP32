@@ -1,6 +1,6 @@
 // MUSTAFA ALPER KAYA
 // NRF24L01+ modüllerini kullanan robot kol projesinin "kol" (alıcı) kodu.
-// ÖZEL MODLAR İÇİN HEM ÖZEL MOD İSMİNİ enum İÇERİSİNE HEM DE KISALTMASINI getSpecialName() İÇİNE YAZMAYI UNUTMAYIN
+// ÖZEL MODLAR İÇİN HEM ÖZEL MOD İSMİNİ enum İÇERİSİNE HEM DE KISALTMASINI (MAKSİMUM 5 KARAKTER) getSpecialName() İÇİNE YAZMAYI UNUTMAYIN
 
 /*#####################################################         KANAL SIRALAMASI         #####################################################
   Keyfinize göre açın, kapatın, değiştirin.
@@ -115,7 +115,7 @@ void dugmelerCode(void * parameter);  //Düğmelere basılıp basılmadığını
 const char* getSpecialName(int index);  //Özel hareketler için belirlenmiş kısaltmalardan gerekeni seçen fonksiyon. (MAKSİMUM 5 KARAKTER)
 void showModeAndFile(const char*);  //OLED ekranda robot kolun durumunu yukarda, dosya ismini aşağıda gösteren fonksiyon.
 void showText(const char *);  //OLED ekranda bir yazıyı otomatik olarak ortalayıp yazdıran fonksiyon.
-void stopRecordingIfNeeded(); //Bir sebepten ötürü kayıtta olunmaması gerekirken hala kayıttaysa kaydı durduran fonksiyon.
+void stopRecordingIfNeeded(); //Robot kol herhangi bir sebepten ötürü kayıtta olmaması gerekirken hala kayıttaysa kaydı durduran fonksiyon.
 //######################################                BİLDİRİMLER                ######################################
 
 //######################################                SERVO                ######################################

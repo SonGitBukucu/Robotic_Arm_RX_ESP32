@@ -466,7 +466,7 @@ if (currentFileIndex >= OzelBaslangic) {
 
   display.setTextSize(2);
   display.getTextBounds(name, 0, 0, &x_2, &y_2, &w_2, &h_2);
-  display.setCursor((SCREEN_WIDTH - w_2) / 2, 60);
+  display.setCursor((SCREEN_WIDTH - w_2) / 2, SCREEN_HEIGHT - 2);
   display.print(name);
   display.display();
   return;
@@ -474,7 +474,7 @@ if (currentFileIndex >= OzelBaslangic) {
 
   String numara = "H-" + String(currentFileIndex);
   display.getTextBounds(numara, 0, 0, &x_2, &y_2, &w_2, &h_2);
-  display.setCursor(0, 60);
+  display.setCursor(0, SCREEN_HEIGHT - 2);
 
   display.print("H-");
   display.print(currentFileIndex);

@@ -63,7 +63,7 @@ RF24 radio(NRF24_CE, NRF24_CSN);
 
 //######################################                SD KART                ######################################
 // HSPI (SD Kart için özel pinler)
-// SCK: 13, MISO: 34, MOSI: 33, CS: 25
+// SCK: 13, MISO: 34, MOSI: 33, CS: 4
 #define SD_SCK  13
 #define SD_MISO 34
 #define SD_MOSI 33

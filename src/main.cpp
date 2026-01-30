@@ -15,7 +15,7 @@
 ######################         DOĞRU ÇALIŞMASI İÇİN LÜTFEN HEM VERİCİDE HEM DE ALICIDA AYNI SIRALAMAYI YAPIN         #######################*/
 
 /* #########################        YAPILACAKLAR       #########################
-  TEST Özel modlar için ayrı playback yapma
+  %0 Ani dosya değişimlerine karşı yavaşça merkeze gelme koruması
    #########################        YAPILACAKLAR       ######################### */
 
 #include <Arduino.h>
@@ -628,6 +628,7 @@ void sdPlayback() {
     servoOrta.writeMicroseconds(values[5]);
     servoYuzuk.writeMicroseconds(values[6]);
     servoSerce.writeMicroseconds(values[7]);
+    //Serial.println(values[0]);
     return;
   }
 
@@ -670,6 +671,7 @@ void sdPlayback() {
   servoOrta.writeMicroseconds(values[5]);
   servoYuzuk.writeMicroseconds(values[6]);
   servoSerce.writeMicroseconds(values[7]);
+  //Serial.println(values[0]);
 }
 
 //######################################                FONKSİYON TANIMLARI                ######################################

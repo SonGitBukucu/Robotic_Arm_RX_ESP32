@@ -30,7 +30,6 @@
 #include <SD.h>
 #include <ESP32Servo.h>
 
-
 //######################################                OLED EKRAN                ######################################
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -60,7 +59,6 @@ const byte nrf24kod[5] = {'r','o','b','o','t'};
 RF24 radio(NRF24_CE, NRF24_CSN);
 //######################################                NRF24                ######################################
 
-
 //######################################                SD KART                ######################################
 // HSPI (SD Kart için özel pinler)
 // SCK: 13, MISO: 34, MOSI: 33, CS: 4
@@ -72,7 +70,7 @@ SPIClass hspi = SPIClass(HSPI);
 //######################################                SD KART                ######################################
 
 //######################################                KOLUN KENDİSİ                ######################################
-#define KareAralik 20 // İki "kare" arasındaki milisaniye farkı. 1000 / KareAralik Sistemin Hz değerini verir.
+#define KareAralik 20 // İki "kare" arasındaki milisaniye farkı. 1000 / KareAralik sistemin Hz değerini verir.
 volatile int currentFileIndex = 0;
 const int maxFiles = toplamOzelHareket;
 static File recFile;

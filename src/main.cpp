@@ -79,7 +79,7 @@ enum OzelHareketler {
 //######################################                ÖZEL MODLAR                ######################################
 
 //######################################                KOLUN KENDİSİ                ######################################
-#define KareAralik 20 // İki "kare" arasındaki milisaniye farkı. 1000 / KareAralik sistemin Hz değerini verir.
+#define kolHz 50 // Robot kolun Hz cinsinden hızı.
 volatile int currentFileIndex = 0;
 const int maxFiles = toplamOzelHareket;
 static File recFile;
@@ -110,8 +110,9 @@ void failSafe();  //NRF24 failsafeAralik (şu an 700ms) kadar boyunca iletişim 
 void sdKartCode(void * parameter);  //Robot kolun hangi modda olduğunu belirleyen ve kolun o moda göre davranmasını sağlayan fonksiyon.
 void sdKayit(); //KAYIT modunda kayıt yapılmasını sağlayan fonksiyon.
 void sdPlayback();  //PLAYBACK modunda playback yapılmasını sağlayan fonksiyon.
+void centerServos(); //PLAYBACK modundayken dosya değiştiğinde ani hareketlerden servoların bozulmasını önleyen fonksiyon. 
 void dugmelerCode(void * parameter);  //Düğmelere basılıp basılmadığını kontrol eden fonksiyon.
-const char* getSpecialName(int index);  //Özel hareketler için belirlenmiş kısaltmalardan gerekeni seçen fonksiyon. (MAKSİMUM 4 KARAKTER)
+const char* getSpecialName(int);  //Özel hareketler için belirlenmiş kısaltmalardan gerekeni seçen fonksiyon. (MAKSİMUM 4 KARAKTER)
 void showModeAndFile(const char*);  //OLED ekranda robot kolun durumunu yukarda, dosya ismini aşağıda gösteren fonksiyon.
 void showText(const char *);  //OLED ekranda bir yazıyı otomatik olarak ortalayıp yazdıran fonksiyon.
 void stopRecordingIfNeeded(); //Robot kol herhangi bir sebepten ötürü kayıtta olmaması gerekirken hala kayıttaysa kaydı durduran fonksiyon.
@@ -127,14 +128,7 @@ void stopRecordingIfNeeded(); //Robot kol herhangi bir sebepten ötürü kayıtt
 #define servoYuzukPin     27
 #define servoSercePin     32
 
-Servo servoPan;
-Servo servoTilt;
-Servo servoBilek;
-Servo servoBas;
-Servo servoIsaret;
-Servo servoOrta;
-Servo servoYuzuk;
-Servo servoSerce;
+Servo servolar[8];
 //######################################                SERVO                ######################################
 
 //######################################                FONKSİYON TANIMLARI                ######################################
@@ -212,14 +206,11 @@ void iletisimCode(void * parameter) {
   for(;;) {
     if (radio.available()) {
       if (arm == false) {
-        servoPan.attach(servoPanPin);
-        servoTilt.attach(servoTiltPin);
-        servoBilek.attach(servoBilekPin);
-        servoBas.attach(servoBasPin);
-        servoIsaret.attach(servoIsaretPin);               
-        servoOrta.attach(servoOrtaPin);
-        servoYuzuk.attach(servoYuzukPin);
-        servoSerce.attach(servoSercePin);
+      int servoPins[8] = {servoPanPin, servoTiltPin, servoBilekPin, servoBasPin, servoIsaretPin, servoOrtaPin, servoYuzukPin, servoSercePin};
+
+      for (int i = 0; i < 8; i++) {
+        servolar[i].attach(servoPins[i]);
+      }
         arm = true;
       }
 
@@ -307,15 +298,9 @@ void sdKartCode(void * parameter) {
     }
     
     if (currentMode == 0) {
-            
-      servoPan.writeMicroseconds    (kanal[0]);
-      servoTilt.writeMicroseconds   (kanal[1]);
-      servoBilek.writeMicroseconds  (kanal[2]);
-      servoBas.writeMicroseconds    (kanal[3]);
-      servoIsaret.writeMicroseconds (kanal[4]);
-      servoOrta.writeMicroseconds   (kanal[5]);
-      servoYuzuk.writeMicroseconds  (kanal[6]);
-      servoSerce.writeMicroseconds  (kanal[7]);
+      for (int i = 0; i < 8; i++) {
+        servolar[i].writeMicroseconds(kanal[i]);
+      }
     }
 
     if (currentMode == 1) {
@@ -412,14 +397,9 @@ void failSafe() {
   kanal[6] = 1500;
   kanal[7] = 1500;
 
-  servoPan.writeMicroseconds    (kanal[0]);
-  servoTilt.writeMicroseconds   (kanal[1]);
-  servoBilek.writeMicroseconds  (kanal[2]);
-  servoBas.writeMicroseconds    (kanal[3]);
-  servoIsaret.writeMicroseconds (kanal[4]);
-  servoOrta.writeMicroseconds   (kanal[5]);
-  servoYuzuk.writeMicroseconds  (kanal[6]);
-  servoSerce.writeMicroseconds  (kanal[7]);
+  for (int i = 0; i < 8; i++) {
+    servolar[i].writeMicroseconds(kanal[i]);
+  }
 
   while (millis() - basarili >= failsafeAralik) {
     if (radio.available()) {
@@ -524,7 +504,7 @@ void sdKayit() {
   }
 
   // 50 Hz (1000 / 20 = 50)
-  if (millis() - lastRecWrite < 1000 / KareAralik) return;
+  if (millis() - lastRecWrite < 1000 / kolHz) return;
   lastRecWrite = millis();
 
   for (int i = 0; i < 8; i++) {
@@ -533,14 +513,9 @@ void sdKayit() {
   }
   recFile.println();
 
-  servoPan.writeMicroseconds    (kanal[0]);
-  servoTilt.writeMicroseconds   (kanal[1]);
-  servoBilek.writeMicroseconds  (kanal[2]);
-  servoBas.writeMicroseconds    (kanal[3]);
-  servoIsaret.writeMicroseconds (kanal[4]);
-  servoOrta.writeMicroseconds   (kanal[5]);
-  servoYuzuk.writeMicroseconds  (kanal[6]);
-  servoSerce.writeMicroseconds  (kanal[7]);
+  for (int i = 0; i < 8; i++) {
+    servolar[i].writeMicroseconds(kanal[i]);
+  }
 }
 
 void stopRecordingIfNeeded() {
@@ -575,7 +550,7 @@ void sdPlayback() {
   if (!sdHazir) return;
 
   // 50 Hz (1000 / 20 = 50)
-  if (millis() - lastStep < 1000 / KareAralik) return;
+  if (millis() - lastStep < 1000 / kolHz) return;
   lastStep = millis();
 
   // DOSYA DEĞİŞİMİ
@@ -584,6 +559,9 @@ void sdPlayback() {
       file.close();
       fileOpen = false;
     }
+
+    centerServos();
+    delay(100);
     lastFileIndex = currentFileIndex;
   }
 
@@ -620,14 +598,9 @@ void sdPlayback() {
 
     if (count != 8) return;
 
-    servoPan.writeMicroseconds(values[0]);
-    servoTilt.writeMicroseconds(values[1]);
-    servoBilek.writeMicroseconds(values[2]);
-    servoBas.writeMicroseconds(values[3]);
-    servoIsaret.writeMicroseconds(values[4]);
-    servoOrta.writeMicroseconds(values[5]);
-    servoYuzuk.writeMicroseconds(values[6]);
-    servoSerce.writeMicroseconds(values[7]);
+    for (int i = 0; i < 8; i++) {
+      servolar[i].writeMicroseconds(kanal[i]);
+    }
     //Serial.println(values[0]);
     return;
   }
@@ -663,15 +636,14 @@ void sdPlayback() {
 
   if (count != 8) return;
 
-  servoPan.writeMicroseconds(values[0]);
-  servoTilt.writeMicroseconds(values[1]);
-  servoBilek.writeMicroseconds(values[2]);
-  servoBas.writeMicroseconds(values[3]);
-  servoIsaret.writeMicroseconds(values[4]);
-  servoOrta.writeMicroseconds(values[5]);
-  servoYuzuk.writeMicroseconds(values[6]);
-  servoSerce.writeMicroseconds(values[7]);
+  for (int i = 0; i < 8; i++) {
+    servolar[i].writeMicroseconds(kanal[i]);
+  }
   //Serial.println(values[0]);
+}
+
+void centerServos() {
+
 }
 
 //######################################                FONKSİYON TANIMLARI                ######################################

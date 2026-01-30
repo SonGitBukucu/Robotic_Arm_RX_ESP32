@@ -1,6 +1,6 @@
 // MUSTAFA ALPER KAYA
 // NRF24L01+ modüllerini kullanan robot kol projesinin "kol" (alıcı) kodu.
-// ÖZEL MODLAR İÇİN HEM ÖZEL MOD İSMİNİ enum İÇERİSİNE HEM DE KISALTMASINI (MAKSİMUM 5 KARAKTER) getSpecialName() İÇİNE YAZMAYI UNUTMAYIN
+// ÖZEL MODLAR İÇİN HEM ÖZEL MOD İSMİNİ enum İÇERİSİNE HEM DE KISALTMASINI (MAKSİMUM 4 KARAKTER) getSpecialName() İÇİNE YAZMAYI UNUTMAYIN
 
 /*#####################################################         KANAL SIRALAMASI         #####################################################
   Keyfinize göre açın, kapatın, değiştirin.
@@ -16,7 +16,6 @@
 
 /* #########################        YAPILACAKLAR       #########################
   TEST Özel modlar için ayrı playback yapma
-  TEST Özel modlar için ayrı bir durum
    #########################        YAPILACAKLAR       ######################### */
 
 #include <Arduino.h>
@@ -69,6 +68,16 @@ RF24 radio(NRF24_CE, NRF24_CSN);
 SPIClass hspi = SPIClass(HSPI);
 //######################################                SD KART                ######################################
 
+//######################################                ÖZEL MODLAR                 ######################################
+// ÖZEL MOD EKLERSENİZ KISALTMASINI getSpecialName() İÇİNE EKLEMEYİ UNUTMAYIN (MAKSİMUM 4 KARAKTER)
+#define OzelBaslangic 1000
+enum OzelHareketler {
+  TAS_KAGIT_MAKAS = OzelBaslangic,
+  EL_SALLA,
+  toplamOzelHareket, //BUNUN EN SONDAKİ ELEMAN OLDUĞUNDA DİKKAT EDİN
+};
+//######################################                ÖZEL MODLAR                ######################################
+
 //######################################                KOLUN KENDİSİ                ######################################
 #define KareAralik 20 // İki "kare" arasındaki milisaniye farkı. 1000 / KareAralik sistemin Hz değerini verir.
 volatile int currentFileIndex = 0;
@@ -90,16 +99,6 @@ volatile byte currentMode = 0;
 // 0 = SERBEST, 1 = KAYIT, 2 = PLAYBACK
 //######################################                KOLUN KENDİSİ                ######################################
 
-//######################################                ÖZEL MODLAR                 ######################################
-// ÖZEL MOD EKLERSENİZ KISALTMASINI getSpecialName() İÇİNE EKLEMEYİ UNUTMAYIN (MAKSİMUM 5 KARAKTER)
-#define OzelBaslangic 1000
-enum OzelHareketler {
-  TAS_KAGIT_MAKAS = OzelBaslangic,
-  EL_SALLA,
-  toplamOzelHareket, //BUNUN EN SONDAKİ ELEMAN OLDUĞUNDA DİKKAT EDİN
-};
-//######################################                ÖZEL MODLAR                ######################################
-
 //######################################                BİLDİRİMLER                ######################################
 TaskHandle_t iletisim;    //NRF24'ler ile ilgili olan fonksiyonları çalıştırır. Çekirdek 1'de çalışır.
 TaskHandle_t sdKart;      //SD kart ile ilgili fonksiyonları çalıştırır.    Çekirdek 0'da çalışır.
@@ -112,7 +111,7 @@ void sdKartCode(void * parameter);  //Robot kolun hangi modda olduğunu belirley
 void sdKayit(); //KAYIT modunda kayıt yapılmasını sağlayan fonksiyon.
 void sdPlayback();  //PLAYBACK modunda playback yapılmasını sağlayan fonksiyon.
 void dugmelerCode(void * parameter);  //Düğmelere basılıp basılmadığını kontrol eden fonksiyon.
-const char* getSpecialName(int index);  //Özel hareketler için belirlenmiş kısaltmalardan gerekeni seçen fonksiyon. (MAKSİMUM 5 KARAKTER)
+const char* getSpecialName(int index);  //Özel hareketler için belirlenmiş kısaltmalardan gerekeni seçen fonksiyon. (MAKSİMUM 4 KARAKTER)
 void showModeAndFile(const char*);  //OLED ekranda robot kolun durumunu yukarda, dosya ismini aşağıda gösteren fonksiyon.
 void showText(const char *);  //OLED ekranda bir yazıyı otomatik olarak ortalayıp yazdıran fonksiyon.
 void stopRecordingIfNeeded(); //Robot kol herhangi bir sebepten ötürü kayıtta olmaması gerekirken hala kayıttaysa kaydı durduran fonksiyon.
@@ -437,10 +436,10 @@ void failSafe() {
 }
 
 const char* getSpecialName(int index) {
-//(MAKSİMUM 5 KARAKTER)
+//(MAKSİMUM 4 KARAKTER)
   switch (index) {
     case TAS_KAGIT_MAKAS: return "TKM";
-    case EL_SALLA:          return "SELAM";
+    case EL_SALLA:          return "SLM";
     default:                return "OZEL";
   }
 }

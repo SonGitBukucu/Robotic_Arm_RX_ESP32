@@ -110,7 +110,6 @@ void failSafe();  //NRF24 failsafeAralik (şu an 700ms) kadar boyunca iletişim 
 void sdKartCode(void * parameter);  //Robot kolun hangi modda olduğunu belirleyen ve kolun o moda göre davranmasını sağlayan fonksiyon.
 void sdKayit(); //KAYIT modunda kayıt yapılmasını sağlayan fonksiyon.
 void sdPlayback();  //PLAYBACK modunda playback yapılmasını sağlayan fonksiyon.
-void centerServos(); //PLAYBACK modundayken dosya değiştiğinde ani hareketlerden servoların bozulmasını önleyen fonksiyon. 
 void dugmelerCode(void * parameter);  //Düğmelere basılıp basılmadığını kontrol eden fonksiyon.
 const char* getSpecialName(int);  //Özel hareketler için belirlenmiş kısaltmalardan gerekeni seçen fonksiyon. (MAKSİMUM 4 KARAKTER)
 void showModeAndFile(const char*);  //OLED ekranda robot kolun durumunu yukarda, dosya ismini aşağıda gösteren fonksiyon.
@@ -514,7 +513,7 @@ void sdKayit() {
   recFile.println();
 
   for (int i = 0; i < 8; i++) {
-    servolar[i].writeMicroseconds(kanal[i]);
+    servolar[i].writeMicroseconds(kanal[i]);    
   }
 }
 
@@ -560,8 +559,6 @@ void sdPlayback() {
       fileOpen = false;
     }
 
-    centerServos();
-    delay(100);
     lastFileIndex = currentFileIndex;
   }
 
@@ -599,7 +596,7 @@ void sdPlayback() {
     if (count != 8) return;
 
     for (int i = 0; i < 8; i++) {
-      servolar[i].writeMicroseconds(kanal[i]);
+      servolar[i].writeMicroseconds(values[i]);      
     }
     //Serial.println(values[0]);
     return;
@@ -637,13 +634,9 @@ void sdPlayback() {
   if (count != 8) return;
 
   for (int i = 0; i < 8; i++) {
-    servolar[i].writeMicroseconds(kanal[i]);
+    servolar[i].writeMicroseconds(values[i]);
   }
   //Serial.println(values[0]);
-}
-
-void centerServos() {
-
 }
 
 //######################################                FONKSİYON TANIMLARI                ######################################

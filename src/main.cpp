@@ -79,7 +79,7 @@ enum OzelHareketler {
 //######################################                ÖZEL MODLAR                ######################################
 
 //######################################                KOLUN KENDİSİ                ######################################
-#define kolHz 50 // Robot kolun Hz cinsinden hızı.
+#define kolHz 100 // Robot kolun Hz cinsinden hızı.
 volatile int currentFileIndex = 0;
 const int maxFiles = toplamOzelHareket;
 static File recFile;
@@ -502,7 +502,7 @@ void sdKayit() {
     
   }
 
-  // 50 Hz (1000 / 20 = 50)
+  // Hz değeri
   if (millis() - lastRecWrite < 1000 / kolHz) return;
   lastRecWrite = millis();
 
@@ -548,7 +548,7 @@ void sdPlayback() {
 
   if (!sdHazir) return;
 
-  // 50 Hz (1000 / 50 = 20)
+  // Hz değeri
   if (millis() - lastStep < 1000 / kolHz) return;
   lastStep = millis();
 

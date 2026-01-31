@@ -548,7 +548,7 @@ void sdPlayback() {
 
   if (!sdHazir) return;
 
-  // 50 Hz (1000 / 20 = 50)
+  // 50 Hz (1000 / 50 = 20)
   if (millis() - lastStep < 1000 / kolHz) return;
   lastStep = millis();
 

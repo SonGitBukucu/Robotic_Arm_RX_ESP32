@@ -94,8 +94,8 @@ bool serbest  = false;
 bool kayit    = false;
 bool playback = false;
 bool sdHazir  = false;
-bool playbackMumkun = false;
-bool kayitMumkun = false;
+bool playbackMumkun = true;
+bool kayitMumkun = true;
 
 #define playbackArti 35
 #define playbackEksi 36
@@ -458,6 +458,11 @@ void showModeAndFile(const char *modeText) {
     kayitMumkun = true;
   }
 
+  if (playbackMumkun == false) {
+    display.drawBitmap(3, 7, image_operation_error_sign_bits, 15, 16, 1);
+    playbackMumkun = true;
+  }
+
   if (currentFileIndex >= OzelBaslangic) {
     const char* name = getSpecialName(currentFileIndex);
     display.setTextSize(2);
@@ -591,10 +596,12 @@ void sdPlayback() {
 
       file = SD.open(fileName, FILE_READ);
       if (!file) {
+        playbackMumkun = false;
         showModeAndFile("OYNAT");
-        display.drawBitmap(3, 7, image_operation_error_sign_bits, 15, 16, 1);
-        display.display();
         return;
+      }
+      else {
+        playbackMumkun = true;
       }
 
       fileOpen = true;
@@ -630,12 +637,14 @@ void sdPlayback() {
     sprintf(fileName, "/hareketler/H-%d.txt", currentFileIndex);
 
     file = SD.open(fileName, FILE_READ);
-    if (!file) {
-      showModeAndFile("OYNAT");
-      display.drawBitmap(3, 7, image_operation_error_sign_bits, 15, 16, 1);
-      display.display();
-      return;
-    }
+      if (!file) {
+        playbackMumkun = false;
+        showModeAndFile("OYNAT");
+        return;
+      }
+      else {
+        playbackMumkun = true;
+      }
 
     fileOpen = true;
   }

@@ -452,6 +452,11 @@ void showModeAndFile(const char *modeText) {
   if (currentFileIndex >= OzelBaslangic && currentMode == 1) {
     display.drawBitmap(0, 7, image_operation_error_bits, 15, 16, 1);
   }
+  
+  if (kayitMumkun == false) {
+    display.drawBitmap(116, 0, image_sd_bits, 12, 16, 1);
+    kayitMumkun = true;
+  }
 
   if (currentFileIndex >= OzelBaslangic) {
     const char* name = getSpecialName(currentFileIndex);
@@ -505,10 +510,12 @@ void sdKayit() {
 
     recFile = SD.open(fileName, FILE_WRITE);
     if (!recFile) {
+      kayitMumkun = false;
       showModeAndFile("KAYDET");
-      display.drawBitmap(116, 0, image_sd_bits, 12, 16, 1);
-      display.display();
       return;
+    }
+    else {
+      kayitMumkun = true;
     }
 
     recordingActive = true;

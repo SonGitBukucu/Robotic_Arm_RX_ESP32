@@ -449,6 +449,10 @@ void showModeAndFile(const char *modeText) {
   display.drawBitmap(115, 12, image_failsafe_error_bits, 13, 10, 1);
   }
 
+  if (currentFileIndex >= OzelBaslangic && currentMode == 1) {
+    display.drawBitmap(0, 7, image_operation_error_bits, 15, 16, 1);
+  }
+
   if (currentFileIndex >= OzelBaslangic) {
     const char* name = getSpecialName(currentFileIndex);
     display.setTextSize(2);
@@ -491,8 +495,6 @@ void sdKayit() {
       recordingActive = false;
     }
     showModeAndFile("KAYDET");
-    display.drawBitmap(0, 7, image_operation_error_bits, 15, 16, 1);
-    display.display();
     return;
   }
 

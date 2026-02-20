@@ -34,6 +34,9 @@
 #define SCREEN_HEIGHT 64
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define ekranAdres 0x3C
+static const unsigned char PROGMEM image_operation_error_bits[] = {0x0f,0xe0,0x10,0x10,0x20,0x08,0x40,0x04,0x88,0x22,0x84,0x42,0x82,0x82,0x81,0x02,0x82,0x82,0x84,0x42,0x88,0x22,0x40,0x04,0x20,0x08,0x10,0x10,0x0f,0xe0,0x00,0x00};
+static const unsigned char PROGMEM image_Layer_5_bits[] = {0x40,0x10,0x92,0x48,0xa7,0x28,0xa7,0x28,0x92,0x48,0x42,0x10,0x02,0x00,0x02,0x00,0x02,0x00};
+static const unsigned char PROGMEM image_operation_error_sign_bits[] = {0x07,0xc0,0x18,0x30,0x27,0xc8,0x48,0x24,0x53,0x94,0xa2,0x8a,0xa2,0x8a,0xa1,0x0a,0xa0,0x0a,0xa3,0x8a,0x51,0x14,0x48,0x24,0x27,0xc8,0x18,0x30,0x07,0xc0,0x00,0x00};
 //######################################                OLED EKRAN                ######################################
 
 //######################################                NRF24                ######################################
@@ -249,8 +252,8 @@ void sdKartCode(void * parameter) {
         currentFileIndex = maxFiles - 1;
       }
       showModeAndFile(
-        currentMode == 2 ? "PLAYBACK" :
-        currentMode == 1 ? "KAYIT" :
+        currentMode == 2 ? "OYNAT" :
+        currentMode == 1 ? "KAYDET" :
                            "SERBEST"
       );
     }
@@ -275,7 +278,7 @@ void sdKartCode(void * parameter) {
 
       if (playback == false) {
         currentMode = 2;
-        showModeAndFile("PLAYBACK");
+        showModeAndFile("OYNAT");
 
         serbest = false;
         playback = true;
@@ -287,7 +290,7 @@ void sdKartCode(void * parameter) {
       if (!kayit) {
         stopRecordingIfNeeded(); // güvenlik
         currentMode = 1;
-        showModeAndFile("KAYIT");
+        showModeAndFile("KAYDET");
       
         serbest = false;
         playback = false;
@@ -379,7 +382,6 @@ void dugmelerCode(void * parameter) {
 void failSafe() {
   if (failsafe == false) {
     failsafe = true;
-    showText("FAIL-SAFE");
   }
 
   if (iletisimVar == true) {
@@ -404,8 +406,8 @@ void failSafe() {
     if (radio.available()) {
       digitalWrite(DEBUG_LED, HIGH);
       showModeAndFile(
-        currentMode == 2 ? "PLAYBACK" :
-        currentMode == 1 ? "KAYIT" :
+        currentMode == 2 ? "OYNAT" :
+        currentMode == 1 ? "KAYDET" :
                            "SERBEST"
       );
       failsafe = false;
@@ -428,7 +430,11 @@ void showModeAndFile(const char *modeText) {
   uint16_t w_1, h_1, w_2, h_2;
   
   display.clearDisplay();
-
+  
+  if (failsafe == 0) {
+    display.drawBitmap(115, 12, image_Layer_5_bits, 13, 7, 1);
+  }
+  
   display.setFont(&FreeSans12pt7b);
   display.setTextSize(1);
   
@@ -440,16 +446,15 @@ void showModeAndFile(const char *modeText) {
   display.setFont(&FreeSans12pt7b);
   display.setTextSize(2);
 
-if (currentFileIndex >= OzelBaslangic) {
-  const char* name = getSpecialName(currentFileIndex);
-
-  display.setTextSize(2);
-  display.getTextBounds(name, 0, 0, &x_2, &y_2, &w_2, &h_2);
-  display.setCursor((SCREEN_WIDTH - w_2) / 2, SCREEN_HEIGHT - 2);
-  display.print(name);
-  display.display();
-  return;
-}
+  if (currentFileIndex >= OzelBaslangic) {
+    const char* name = getSpecialName(currentFileIndex);
+    display.setTextSize(2);
+    display.getTextBounds(name, 0, 0, &x_2, &y_2, &w_2, &h_2);
+    display.setCursor((SCREEN_WIDTH - w_2) / 2, SCREEN_HEIGHT - 2);
+    display.print(name);
+    display.display();
+    return;
+  }
 
   String numara = "H-" + String(currentFileIndex);
   display.getTextBounds(numara, 0, 0, &x_2, &y_2, &w_2, &h_2);
@@ -482,7 +487,9 @@ void sdKayit() {
       recFile.close();
       recordingActive = false;
     }
-    showText("OZEL MOD");
+    showModeAndFile("KAYDET");
+    display.drawBitmap(0, 8, image_operation_error_sign_bits, 15, 16, 1);
+    display.display();
     return;
   }
 
@@ -570,7 +577,9 @@ void sdPlayback() {
 
       file = SD.open(fileName, FILE_READ);
       if (!file) {
-        showModeAndFile("PB YOK");
+        showModeAndFile("OYNAT");
+        display.drawBitmap(3, 8, image_operation_error_bits, 15, 16, 1);
+        display.display();
         return;
       }
 
@@ -608,7 +617,9 @@ void sdPlayback() {
 
     file = SD.open(fileName, FILE_READ);
     if (!file) {
-      showModeAndFile("PB YOK");
+      showModeAndFile("OYNAT");
+      display.drawBitmap(3, 8, image_operation_error_bits, 15, 16, 1);
+      display.display();
       return;
     }
 

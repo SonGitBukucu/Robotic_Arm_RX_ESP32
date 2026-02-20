@@ -34,8 +34,9 @@
 #define SCREEN_HEIGHT 64
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define ekranAdres 0x3C
+static const unsigned char PROGMEM image_sd_bits[] = {0x3f,0xf0,0x3f,0xf0,0x2d,0x90,0x24,0x90,0x2d,0x90,0x3f,0xf0,0x7f,0xf0,0xff,0xf0,0xff,0xf0,0x72,0x30,0x6e,0xb0,0xe2,0x90,0xfa,0x90,0xe2,0x30,0xff,0xf0,0xff,0xf0};
 static const unsigned char PROGMEM image_operation_error_bits[] = {0x0f,0xe0,0x10,0x10,0x20,0x08,0x40,0x04,0x88,0x22,0x84,0x42,0x82,0x82,0x81,0x02,0x82,0x82,0x84,0x42,0x88,0x22,0x40,0x04,0x20,0x08,0x10,0x10,0x0f,0xe0,0x00,0x00};
-static const unsigned char PROGMEM image_failsafe_error_bits[] = {0x40,0x10,0x92,0x48,0xa7,0x28,0xa7,0x28,0x92,0x48,0x42,0x10,0x02,0x00,0x02,0x00,0x02,0x00,0x02,0x00};
+static const unsigned char PROGMEM image_failsafe_error_bits[] = {0x40,0x10,0x92,0x48,0xa7,0x28,0xa7,0x28,0x92,0x48,0x42,0x10,0x02,0x00,0x02,0x00,0x02,0x00};
 static const unsigned char PROGMEM image_operation_error_sign_bits[] = {0x07,0xc0,0x18,0x30,0x27,0xc8,0x48,0x24,0x53,0x94,0xa2,0x8a,0xa2,0x8a,0xa1,0x0a,0xa0,0x0a,0xa3,0x8a,0x51,0x14,0x48,0x24,0x27,0xc8,0x18,0x30,0x07,0xc0,0x00,0x00};
 //######################################                OLED EKRAN                ######################################
 
@@ -93,6 +94,8 @@ bool serbest  = false;
 bool kayit    = false;
 bool playback = false;
 bool sdHazir  = false;
+bool playbackMumkun = false;
+bool kayitMumkun = false;
 
 #define playbackArti 35
 #define playbackEksi 36
@@ -488,7 +491,7 @@ void sdKayit() {
       recordingActive = false;
     }
     showModeAndFile("KAYDET");
-    display.drawBitmap(0, 8, image_operation_error_sign_bits, 15, 16, 1);
+    display.drawBitmap(0, 7, image_operation_error_bits, 15, 16, 1);
     display.display();
     return;
   }
@@ -500,7 +503,9 @@ void sdKayit() {
 
     recFile = SD.open(fileName, FILE_WRITE);
     if (!recFile) {
-      showText("KAYIT HATA");
+      showModeAndFile("KAYDET");
+      display.drawBitmap(116, 0, image_sd_bits, 12, 16, 1);
+      display.display();
       return;
     }
 
@@ -578,7 +583,7 @@ void sdPlayback() {
       file = SD.open(fileName, FILE_READ);
       if (!file) {
         showModeAndFile("OYNAT");
-        display.drawBitmap(3, 8, image_operation_error_bits, 15, 16, 1);
+        display.drawBitmap(3, 7, image_operation_error_sign_bits, 15, 16, 1);
         display.display();
         return;
       }
@@ -618,7 +623,7 @@ void sdPlayback() {
     file = SD.open(fileName, FILE_READ);
     if (!file) {
       showModeAndFile("OYNAT");
-      display.drawBitmap(3, 8, image_operation_error_bits, 15, 16, 1);
+      display.drawBitmap(3, 7, image_operation_error_sign_bits, 15, 16, 1);
       display.display();
       return;
     }

@@ -572,10 +572,14 @@ void sdPlayback() {
     wasInPlayback = true;
   }
 
-  if (!sdHazir) return;
-
+  if (!sdHazir) {
+    return;
+  }
+  
   // Hz değeri
-  if (millis() - lastStep < 1000 / kolHz) return;
+  if (millis() - lastStep < 1000 / kolHz) {
+    return;
+  }
   lastStep = millis();
 
   // DOSYA DEĞİŞİMİ
@@ -623,7 +627,9 @@ void sdPlayback() {
       &values[4], &values[5], &values[6], &values[7]
     );
 
-    if (count != 8) return;
+    if (count != 8) {
+      return;
+    }
 
     for (int i = 0; i < 8; i++) {
       servolar[i].writeMicroseconds(values[i]);      
@@ -665,7 +671,9 @@ void sdPlayback() {
     &values[4], &values[5], &values[6], &values[7]
   );
 
-  if (count != 8) return;
+  if (count != 8) {
+    return;
+  }
 
   for (int i = 0; i < 8; i++) {
     servolar[i].writeMicroseconds(values[i]);

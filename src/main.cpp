@@ -444,8 +444,8 @@ void showModeAndFile(const char *modeText) {
   display.setFont(&FreeSans12pt7b);
   display.setTextSize(2);
 
-  if (failsafe == 1) {
-  display.drawBitmap(115, 18, image_failsafe_error_bits, 13, 9, 1);
+  if (failsafe == true) {
+  display.drawBitmap(115, 17, image_failsafe_error_bits, 13, 9, 1);
   }
 
   if (kayitMumkun == false) {

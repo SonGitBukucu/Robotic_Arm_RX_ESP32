@@ -448,21 +448,21 @@ void showModeAndFile(const char *modeText) {
   display.drawBitmap(115, 12, image_failsafe_error_bits, 13, 10, 1);
   }
 
-  if (currentFileIndex >= OzelBaslangic && currentMode == 1) {
-    display.drawBitmap(0, 7, image_operation_error_bits, 15, 16, 1);
-  }
-  
   if (kayitMumkun == false) {
     display.drawBitmap(116, 0, image_sd_bits, 12, 16, 1);
     kayitMumkun = true;
   }
 
   if (playbackMumkun == false) {
-    display.drawBitmap(3, 7, image_operation_error_bits, 15, 16, 1);
+    display.drawBitmap(3, 0, image_operation_error_bits, 15, 16, 1);
+    display.drawBitmap(116, 0, image_sd_bits, 12, 16, 1);
     playbackMumkun = true;
   }
 
   if (currentFileIndex >= OzelBaslangic) {
+    if (currentMode == 1) {
+    display.drawBitmap(0, 0, image_operation_error_bits, 15, 16, 1);
+    }
     const char* name = getSpecialName(currentFileIndex);
     display.setTextSize(2);
     display.getTextBounds(name, 0, 0, &x_2, &y_2, &w_2, &h_2);

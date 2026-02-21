@@ -15,7 +15,7 @@
 ######################         DOĞRU ÇALIŞMASI İÇİN LÜTFEN HEM VERİCİDE HEM DE ALICIDA AYNI SIRALAMAYI YAPIN         #######################*/
 
 /* #########################        YAPILACAKLAR       #########################
-  %0 Ani dosya değişimlerine karşı yavaşça merkeze gelme koruması
+
    #########################        YAPILACAKLAR       ######################### */
 
 #include <Arduino.h>

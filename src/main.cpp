@@ -445,7 +445,7 @@ void showModeAndFile(const char *modeText) {
   display.setTextSize(2);
 
   if (failsafe == 1) {
-  display.drawBitmap(115, 12, image_failsafe_error_bits, 13, 10, 1);
+  display.drawBitmap(115, 18, image_failsafe_error_bits, 13, 9, 1);
   }
 
   if (kayitMumkun == false) {
@@ -466,7 +466,7 @@ void showModeAndFile(const char *modeText) {
     const char* name = getSpecialName(currentFileIndex);
     display.setTextSize(2);
     display.getTextBounds(name, 0, 0, &x_2, &y_2, &w_2, &h_2);
-    display.setCursor((SCREEN_WIDTH - w_2) / 2, SCREEN_HEIGHT - 2);
+    display.setCursor((SCREEN_WIDTH - w_2) / 2, SCREEN_HEIGHT - 3);
     display.print(name);
     display.display();
     return;
@@ -474,7 +474,7 @@ void showModeAndFile(const char *modeText) {
 
   String numara = "H-" + String(currentFileIndex);
   display.getTextBounds(numara, 0, 0, &x_2, &y_2, &w_2, &h_2);
-  display.setCursor(0, SCREEN_HEIGHT - 2);
+  display.setCursor(0, SCREEN_HEIGHT - 3);
 
   display.print("H-");
   display.print(currentFileIndex);

@@ -438,7 +438,7 @@ void showModeAndFile(const char *modeText) {
   
   display.getTextBounds(modeText, 0, 0, &x_1, &y_1, &w_1, &h_1);
 
-  display.setCursor((SCREEN_WIDTH - w_1) / 2, (SCREEN_HEIGHT - h_1) / 2);
+  display.setCursor((SCREEN_WIDTH - w_1) / 2, (SCREEN_HEIGHT - h_1) / 2 - 6);
   display.print(modeText);
 
   display.setFont(&FreeSans12pt7b);
@@ -454,14 +454,14 @@ void showModeAndFile(const char *modeText) {
   }
 
   if (playbackMumkun == false) {
-    display.drawBitmap(3, 0, image_operation_error_bits, 15, 16, 1);
+    display.drawBitmap(3, 1, image_operation_error_bits, 15, 16, 1);
     display.drawBitmap(116, 0, image_sd_bits, 12, 16, 1);
     playbackMumkun = true;
   }
 
   if (currentFileIndex >= OzelBaslangic) {
     if (currentMode == 1) {
-    display.drawBitmap(0, 0, image_operation_error_bits, 15, 16, 1);
+    display.drawBitmap(0, 1, image_operation_error_bits, 15, 16, 1);
     }
     const char* name = getSpecialName(currentFileIndex);
     display.setTextSize(2);
